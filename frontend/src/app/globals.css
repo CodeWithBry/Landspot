@@ -1,0 +1,151 @@
+@import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
+:root {
+    --color-bg: #F8FAFC;
+    --color-surface: #FFFFFF;
+    --color-surface-alt: #F1F5F9;
+    --color-border: #E2E8F0;
+    --color-border-strong: #CBD5E1;
+    --color-text-primary: #0F172A;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94A3B8;
+    --color-primary-50: #EEF2FF;
+    --color-primary-100: #E0E7FF;
+    --color-primary-300: #818CF8;
+    --color-primary-500: #4F46E5;
+    --color-primary-600: #4338CA;
+    --color-primary-700: #3730A3;
+    --color-accent-400: #22D3EE;
+    --color-accent-500: #06B6D4;
+    --color-accent-600: #0891B2;
+    --color-success-500: #10B981;
+    --color-warning-500: #F59E0B;
+    --color-danger-500: #EF4444;
+    --color-map-marker: #FF3B30;
+    --color-map-marker-hover: #FF453A;
+    --color-highlight: #F97316;
+}
+
+@theme inline {
+    /* ─── Typography ─── */
+    --font-display: "Cormorant Garamond", Georgia, serif;
+    --font-body: "DM Sans", "Helvetica Neue", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+    --font-serif: var(--font-roboto-slab), serif;
+    --text-xs: 11px;
+    --text-s: 13px;
+    --text-m: 15px;
+    --text-l: 17px;
+    --text-xl: 21px;
+    --text-2xl: 28px;
+    --text-3xl: 38px;
+    --text-4xl: 52px;
+    --text-5xl: 72px;
+    --leading-tight: 1.15;
+    --leading-normal: 1.55;
+    --leading-loose: 1.85;
+    --tracking-tight: -0.03em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.08em;
+    --tracking-widest: 0.2em;
+    /* ─── Core Palette ─── */
+    --color-bg: #F8FAFC;
+    --color-surface: #FFFFFF;
+    --color-surface-alt: #F1F5F9;
+    --color-border: #E2E8F0;
+    --color-border-strong: #CBD5E1;
+    --color-text-primary: #0F172A;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94A3B8;
+    --color-primary-50: #EEF2FF;
+    --color-primary-100: #E0E7FF;
+    --color-primary-300: #818CF8;
+    --color-primary-500: #4F46E5;
+    --color-primary-600: #4338CA;
+    --color-primary-700: #3730A3;
+    --color-accent-400: #22D3EE;
+    --color-accent-500: #06B6D4;
+    --color-accent-600: #0891B2;
+    --color-success-500: #10B981;
+    --color-warning-500: #F59E0B;
+    --color-danger-500: #EF4444;
+    --color-map-marker: #FF3B30;
+    --color-map-marker-hover: #FF453A;
+    --color-highlight: #F97316;
+    /* ─── Semantic Tokens ─── */
+    --color-bg: var(--color-ivory);
+    --color-bg-subtle: var(--color-ivory-warm);
+    --color-bg-card: #FFFFFF;
+    --color-bg-dark: var(--color-slate-900);
+    --color-text-primary: var(--color-slate-900);
+    --color-text-secondary: var(--color-slate-600);
+    --color-text-muted: var(--color-slate-400);
+    --color-text-on-dark: var(--color-ivory);
+    --color-accent: var(--color-brass);
+    --color-accent-light: var(--color-brass-light);
+    --color-accent-deep: var(--color-brass-deep);
+    --color-border: var(--color-ivory-deep);
+    --color-border-strong: var(--color-slate-200);
+    /* ─── Spacing ─── */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+    --space-24: 96px;
+    --space-32: 128px;
+    /* ─── Radii ─── */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+    /* ─── Shadows ─── */
+    --shadow-sm: 0 1px 3px rgba(20, 26, 32, 0.06), 0 1px 2px rgba(20, 26, 32, 0.04);
+    --shadow-md: 0 4px 16px rgba(20, 26, 32, 0.08), 0 2px 6px rgba(20, 26, 32, 0.05);
+    --shadow-lg: 0 12px 40px rgba(20, 26, 32, 0.12), 0 4px 12px rgba(20, 26, 32, 0.06);
+    --shadow-xl: 0 24px 64px rgba(20, 26, 32, 0.16);
+    --shadow-card: 0 2px 8px rgba(20, 26, 32, 0.07), 0 0 0 1px rgba(20, 26, 32, 0.04);
+    --shadow-accent: 0 8px 32px rgba(184, 144, 47, 0.22);
+    /* ─── Transitions ─── */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+    --duration-fast: 150ms;
+    --duration-normal: 280ms;
+    --duration-slow: 500ms;
+    /* ─── Layout ─── */
+    --container-sm: 640px;
+    --container-md: 768px;
+    --container-lg: 1024px;
+    --container-xl: 1280px;
+    --container-2xl: 1440px;
+    --header-height: 72px;
+    --sidebar-width: 320px;
+    /* Animation */
+    --animate-to-full-width: toFullWidth .5s ease forwards;
+}
+
+@keyframes toFullWidth {
+    from {
+        width: 0%;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@layer utilities {
+    .btn {
+        @apply md:text-m cursor-pointer text-sm rounded-md px-4 py-2 transition font-serif
+    }
+}
+
+.leaflet-control-zoom {
+    display: none;
+}
