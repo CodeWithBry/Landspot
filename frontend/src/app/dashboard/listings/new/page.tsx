@@ -20,7 +20,7 @@ export type FormType = {
 };
 
 function AddListing() {
-    const { addNewListing, testAddressToNominatim, uploadToCloudinary } = useListing();
+    const { addNewListing, testAddress, uploadToCloudinary } = useListing();
     const { user } = useAuth();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
     const router = useRouter();
@@ -29,6 +29,7 @@ function AddListing() {
     ]
     const [isRegistring, setIsRegistring] = useState<boolean>(false);
     const [registered, setIsRegistered] = useState<boolean>(false);
+    const [coordinates, setCoordinates] = useState<{lat: number, lng: number}>();
     const [debounceValue, setDebounceValue] = useState<string>("");
     const [geocodeMessage, setGeocodeMessage] = useState<string>("");
     const [form, setForm] = useState<FormType>({
@@ -45,13 +46,15 @@ function AddListing() {
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         try {
-            const newListing = await addNewListing({ ...form });
-            console.log(newListing?.id)
+            const newListing = await addNewListing({ ...form, lat: coordinates?.lat, lng: coordinates?.lng });
             if (files.length && newListing?.id) {
+                console.log(newListing)
                 const formData = new FormData();
                 files.map((file) => formData.append('images', file.file));
                 formData.append("listing_id", newListing.id)
-                await api.post(`/api/cloudinary/upload`, formData)
+                await api.post(`/api/cloudinary/upload`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
             }
             router.push("/dashboard");
         } catch (error) {
@@ -85,9 +88,10 @@ function AddListing() {
 
         const time = setTimeout(async () => {
             try {
-                const res = await testAddressToNominatim(debounceValue);
-
+                const res = await testAddress(debounceValue);
                 if (isActive && res) {
+                    console.log(res)
+                    setCoordinates({lat: res.lat, lng: res.lng});
                     setIsRegistered(true);
                     setGeocodeMessage("Address Registered.")
                 }
@@ -146,8 +150,8 @@ function AddListing() {
                                 <div className={``}>
                                     <img
                                         className="w-full h-auto"
-                                        src={files.length ? URL.createObjectURL(files[0].file) : ""} 
-                                        />
+                                        src={files.length ? URL.createObjectURL(files[0].file) : ""}
+                                    />
                                 </div>
                         }
                     </label>

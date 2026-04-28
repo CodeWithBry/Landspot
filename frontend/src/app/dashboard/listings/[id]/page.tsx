@@ -1,21 +1,12 @@
 'use client'
 
 import { useListing } from "@/hooks/useListings"
+import { ListingForm } from "@/types/ListingType";
 import { FormEvent, SubmitEventHandler, useState } from "react"
-
-export type Form = {
-    title: string
-    description: string
-    property_type: 'house' | 'condo' | 'apartment' | 'lot'
-    price: number
-    bedrooms: number
-    bathrooms: number
-    address: string
-}
 
 function AddListing() {
     const { addNewListing } = useListing();
-    const [form, setForm] = useState<Form>({
+    const [form, setForm] = useState<ListingForm>({
         title: "",
         description: "",
         property_type: "house",

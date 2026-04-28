@@ -11,9 +11,9 @@ cloudinary.config({
 
 export async function uploadFiles(req: Request, res: Response) {
     const files = req.files as Express.Multer.File[];
-    const { listing_id } = req.body;
+    const {listing_id} = req.body;
     try {
-        if(!files.length) {
+        if (!files.length) {
             sendError(res, "No Files Uploaded!");
             return;
         }

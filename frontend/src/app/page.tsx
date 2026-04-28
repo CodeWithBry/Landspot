@@ -12,6 +12,7 @@ function Map() {
   const { listings } = useListing();
   const wrapper = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
   const [searchInput, setSearchInput] = useState<string>("");
 
   useEffect(() => {
@@ -19,11 +20,17 @@ function Map() {
     if (!input) return
 
     const handleFocus = () => {
-      if (wrapper.current) wrapper.current.style.width = '98%'
+      if (wrapper.current) {
+        setIsFocused(true);
+        wrapper.current.style.width = '98%'
+      }
     }
 
     const handleBlur = () => {
-      if (wrapper.current) wrapper.current.style.width = '300px'
+      if (wrapper.current) {
+        setIsFocused(false);
+        wrapper.current.style.width = '300px'
+      }
     }
 
     input.addEventListener('focus', handleFocus)
@@ -49,13 +56,30 @@ function Map() {
           }
         </button>
         <Search size={18} className='opacity-70' />
-        <input 
+        <input
           value={searchInput}
-          ref={inputRef} 
-          type="text" 
-          className='w-full outline-0 font-serif text-md px-2' 
+          ref={inputRef}
+          type="text"
+          className='w-full outline-0 font-serif text-md px-2'
           placeholder='Type address or estate title...'
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)} />
+        <div className={`absolute top-full ${isFocused ? "flex flex-col" : "hidden"} p-3 w-[calc(100%_-_12px)] max-h-[300px] h-auto shadow-xl rounded-xl bg-white`}>
+          {
+            listings.map((list) => {
+              return <div
+                className={`flex gap-2 p-3 w-[calc(100%_-_12px)] bg-white hover:bg-gray-300 transition-all cursor-pointer *:text-black`} 
+                key={list.address}>
+                  <img
+                  className='w-10 h-10' 
+                  src={list.images && list.images[0].cloudinary_url ? list.images[0].cloudinary_url : "./dummy_apartment.png" } />
+                  <div className='flex flex-col gap-px'>
+                    <h2 className='text-md'>{list.title}</h2>
+                    <p className='text-sm'>{list.address}</p>
+                  </div>
+              </div>
+            })
+          }
+        </div>
       </div>
       <MapView listings={listings} />
     </div>

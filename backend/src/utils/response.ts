@@ -1,7 +1,6 @@
 import { Response } from "express";
 
 export async function sendResponse(res: Response, data: unknown, status = 200) {
-    console.log(data)
     return res.status(status).json({data})
 }
 

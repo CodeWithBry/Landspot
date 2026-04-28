@@ -1,8 +1,7 @@
 import { api } from "@/lib/api";
-import { Listing } from "@/types/ListingType";
+import { Listing, ListingForm } from "@/types/ListingType";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
-import { Form } from "@/app/dashboard/listings/[id]/page";
 import { defineError } from "@/utils/defineError";
 
 export type UseListingType = {
@@ -11,8 +10,9 @@ export type UseListingType = {
   setMyListings: Dispatch<SetStateAction<Listing[]>>,
   loadingListings: boolean,
   error?: Error | string,
-  addNewListing: (form: Form) => Promise<Listing | undefined>;
-  testAddressToNominatim: (address: string) => Promise<boolean | undefined>,
+  addNewListing: (form: ListingForm) => Promise<Listing | undefined>;
+  testAddress: (address: string) => Promise<{ lat: number, lng: number } | undefined>,
+  getListingById: (listing_id: string) => Promise<Listing | undefined>
   uploadToCloudinary: () => void;
 }
 
@@ -23,7 +23,7 @@ export function useListing(): UseListingType {
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [error, setError] = useState<Error | string>();
 
-  const addNewListing = async (form: Form): Promise<Listing | undefined> => {
+  const addNewListing = async (form: ListingForm): Promise<Listing | undefined> => {
     try {
       const result = await api.post('/api/listings/add-listing', { ...form });
       setListings(prev => [...prev, result.data.data]);
@@ -33,12 +33,11 @@ export function useListing(): UseListingType {
     }
   }
 
-  const testAddressToNominatim = async (address: string): Promise<boolean | undefined> => {
+  const testAddress = async (address: string): Promise<{ lat: number, lng: number } | undefined> => {
     try {
-      console.log(address)
       const { data } = await api.post('/api/listings/test-address', { address });
-      if (data.data == "ok") return true;
-      return false;
+      if (data.data?.lat) return data.data;
+      return;
     } catch (error) {
       console.log(error);
       throw error
@@ -51,10 +50,23 @@ export function useListing(): UseListingType {
       setListings(prev => [...prev, ...res.data.data]);
       return;
     } catch (error) {
-      throw error
       console.log(error)
+      throw error
     }
   };
+
+  const getListingById = async (listing_id: string): Promise<Listing | undefined> => {
+    try {
+      const result = await api.post("/api/listings/get-listing-by-id", listing_id);
+      if(result.data.data) {
+        return result.data.data;
+      }
+      return;
+    } catch (error) {
+      console.log(error);
+      throw error
+    }
+  }
 
   const uploadToCloudinary = async () => {
 
@@ -63,14 +75,16 @@ export function useListing(): UseListingType {
   useEffect(() => {
     if (!isDataLoaded) return;
     setLoadingListings(true);
-    api.post('/api/listings/load-listings', { targetMin: 1, targetMax: 10 })
+    api.post('/api/listings/get-listings', { targetMin: 1, targetMax: 10 })
       .then(res => {
+        console.log(res.data.data)
         setListings([...res.data.data])
       })
       .catch(err => { console.log(err) })
       .finally(() => {
         if (user?.name) api.post('/api/listings/my-listing', { user })
           .then(res => {
+            console.log(myListings)
             setMyListings(res.data.data)
           })
           .catch(err => {
@@ -82,5 +96,5 @@ export function useListing(): UseListingType {
       });
   }, [isDataLoaded, user?.id])
 
-  return { listings, myListings, setListings, setMyListings, loadingListings, error, addNewListing, testAddressToNominatim, uploadToCloudinary };
+  return { listings, myListings, setListings, setMyListings, getListingById, loadingListings, error, addNewListing, testAddress, uploadToCloudinary };
 }

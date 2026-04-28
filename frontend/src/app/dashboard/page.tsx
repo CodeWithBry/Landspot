@@ -2,20 +2,18 @@
 
 import ListingCard from "@/components/listings/ListingCard";
 import { navContext } from "@/context/NavigationProvider";
-import { useAuth } from "@/hooks/useAuth";
 import { useListing } from "@/hooks/useListings"
 import { NavigationContextType } from "@/types/NavigationContextType";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
-// import { useEffect } from "react"
 
 export default function Dashboard() {
     const { myListings } = useListing();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
 
     return <>
-        <section className="w-full h-full relative flex justify-center">
+        <section className="w-full h-full relative flex justify-center overflow-hidden overflow-y-auto">
             <div className="max-w-300 w-full h-full flex flex-col mx-5">
                 <header className="flex justify-between items-center my-10">
                     <h2 className="text-black font-serif text-2xl font-bold flex gap-2 place-items-center">

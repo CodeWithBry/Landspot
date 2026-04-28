@@ -1,5 +1,7 @@
-export function Listings() {
+function Listings() {
     
     
     return ('');
 }
+
+export default Listings;

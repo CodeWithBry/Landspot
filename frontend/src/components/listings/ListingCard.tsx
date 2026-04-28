@@ -2,12 +2,12 @@ import { Listing } from "@/types/ListingType"
 
 function ListingCard({ listing }: { listing: Listing }) {
   const imageStyle = {
-    backgroundImage: `url("${listing?.images ? listing.images[0] : "./dummy_apartment.png"}")`,
+    backgroundImage: `url("${listing?.images ? listing.images[0].cloudinary_url : "./dummy_apartment.png"}")`,
     backgroundPosition: "center",
     backgroundSize: "100% 100%"
   }
   return (
-    <div className="md:flex-row flex flex-col gap-2 w-full px-5 py-3 text-serif border-2 border-primary-300 hover:border-primary-600">
+    <div className="md:flex-row flex flex-col gap-2 w-full px-5 py-3 text-serif border-2 rounded-xl border-primary-300 hover:border-primary-600">
       <div className="w-30 h-30 shrink-0 rounded-2xl flex justify-center place-items-center">
         <div
           className={`w-full h-full`}

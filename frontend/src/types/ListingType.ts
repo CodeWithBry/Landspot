@@ -15,6 +15,18 @@ export interface Listing {
   images?: ListingImage[]
 }
 
+export interface ListingForm {
+  title: string
+  description: string
+  property_type: 'house' | 'condo' | 'apartment' | 'lot'
+  price: number
+  bedrooms: number
+  bathrooms: number
+  address: string,
+  lat?: number,
+  lng?: number
+}
+
 export interface ListingImage {
   id: string
   listing_id: string
@@ -24,8 +36,8 @@ export interface ListingImage {
 }
 
 export type MapType = {
-    center: [number, number],
-    zoom?: number,
-    listings?: Listing[],
-    onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
+  center: [number, number],
+  zoom?: number,
+  listings?: Listing[],
+  onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
 }
