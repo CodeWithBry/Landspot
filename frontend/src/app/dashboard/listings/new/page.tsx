@@ -28,6 +28,8 @@ function AddListing() {
         'house', 'condo', 'apartment', 'lot'
     ]
     const [isRegistring, setIsRegistring] = useState<boolean>(false);
+    const [isProcessing, setIsProcessing] = useState<boolean>(false);
+    const [isProcesed, setIsProcessed] = useState<boolean>(false);
     const [registered, setIsRegistered] = useState<boolean>(false);
     const [coordinates, setCoordinates] = useState<{lat: number, lng: number}>();
     const [debounceValue, setDebounceValue] = useState<string>("");
@@ -48,8 +50,8 @@ function AddListing() {
         try {
             const newListing = await addNewListing({ ...form, lat: coordinates?.lat, lng: coordinates?.lng });
             if (files.length && newListing?.id) {
-                console.log(newListing)
                 const formData = new FormData();
+                setIsProcessing(true);
                 files.map((file) => formData.append('images', file.file));
                 formData.append("listing_id", newListing.id)
                 await api.post(`/api/cloudinary/upload`, formData, {
@@ -60,6 +62,9 @@ function AddListing() {
         } catch (error) {
             console.log(error);
             throw error;
+        } finally {
+            setIsProcessing(false);
+            setIsProcessed(true);
         }
     }
 
@@ -136,6 +141,7 @@ function AddListing() {
                         htmlFor="fileUploader"
                         className={`${!files.length && "py-10"} max-h-62.5 overflow-hidden w-full flex flex-col justify-center place-items-center border-2 border-primary-300 border-dashed rounded-2xl`}>
                         <input
+                            disabled={isProcessing}
                             className="hidden"
                             type="file"
                             id="fileUploader"
@@ -156,6 +162,7 @@ function AddListing() {
                         }
                     </label>
                     <input
+                        disabled={isProcessing}
                         type="text"
                         className="w-[clamp(100% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                         placeholder="Title"
@@ -184,6 +191,7 @@ function AddListing() {
                             }
                         </div>
                         <input
+                            disabled={isProcessing}
                             type="text"
                             id="address"
                             className="w-full ml-3 outline-0"
@@ -200,6 +208,7 @@ function AddListing() {
                             <label className="flex flex-col gap-2 md:w-1/2 w-full">
                                 <p>Pricing</p>
                                 <input
+                                    disabled={isProcessing}
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm(prev => ({ ...prev, price: Number(e.target.value) }))} />
@@ -224,6 +233,7 @@ function AddListing() {
                             <label className="flex flex-col  md:w-1/2 w-full">
                                 <p>Bedrooms</p>
                                 <input
+                                    disabled={isProcessing}
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm(prev => ({ ...prev, bedrooms: Number(e.target.value) }))} />
@@ -231,6 +241,7 @@ function AddListing() {
                             <label className="flex flex-col  md:w-1/2 w-full">
                                 <p>Bathrooms</p>
                                 <input
+                                    disabled={isProcessing}
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setForm(prev => ({ ...prev, bathrooms: Number(e.target.value) }))} />
@@ -245,8 +256,15 @@ function AddListing() {
                             Cancel
                         </Link>
                         <button
-                            className="btn md:w-1/2 w-full text-white  bg-accent-400 hover:bg-accent-500">
-                            Confirm
+                            disabled={isProcessing}
+                            className="btn md:w-1/2 w-full text-white flex justify-center place-items-center bg-accent-400 hover:bg-accent-500" >
+                            {
+                                isProcesed && !isProcessing ? 
+                                    <Check size={18} /> :
+                                        isProcessing ? <>
+                                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                        </> : "Confirm"
+                            }
                         </button>
                     </div>
                 </form>

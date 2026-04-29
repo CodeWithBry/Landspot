@@ -2,11 +2,10 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useState } from "react";
 
 export default function Singup() {
   const { signup } = useAuth();
-  const checkRef = useRef(null);
   const [form, setForm] = useState<{ userName: string, email: string, password: string, role: "buyer" | "agent" }>({
     userName: "", email: "", password: "", role: "buyer"
   });

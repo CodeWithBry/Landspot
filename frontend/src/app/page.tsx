@@ -71,7 +71,7 @@ function Map() {
                 key={list.address}>
                   <img
                   className='w-10 h-10' 
-                  src={list.images && list.images[0].cloudinary_url ? list.images[0].cloudinary_url : "./dummy_apartment.png" } />
+                  src={list.images && list.images[0]?.cloudinary_url ? list.images[0].cloudinary_url : "./dummy_apartment.png" } />
                   <div className='flex flex-col gap-px'>
                     <h2 className='text-md'>{list.title}</h2>
                     <p className='text-sm'>{list.address}</p>

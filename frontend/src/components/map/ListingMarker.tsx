@@ -21,7 +21,7 @@ export function ListingMarker({ listing }: { listing: Listing }) {
             <div className="max-w-[190px] min-w-[150px]">
                 <img
                     className="w-full h-auto" 
-                    src={listing?.images ? listing.images[0].cloudinary_url : "./dummy_apartment.png"} />
+                    src={listing?.images && listing.images[0]?.cloudinary_url ? listing.images[0].cloudinary_url : "./dummy_apartment.png"} />
                 <p style={{ fontWeight: 600, marginBottom: 4 }}>{listing.title}</p>
                 <p style={{ fontSize: 13, color: '#555', marginBottom: 8 }}>
                     {listing.bedrooms} bd · {listing.bathrooms} ba · ₱{listing.price.toLocaleString()}

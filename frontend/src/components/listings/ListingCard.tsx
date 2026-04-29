@@ -2,7 +2,7 @@ import { Listing } from "@/types/ListingType"
 
 function ListingCard({ listing }: { listing: Listing }) {
   const imageStyle = {
-    backgroundImage: `url("${listing?.images ? listing.images[0].cloudinary_url : "./dummy_apartment.png"}")`,
+    backgroundImage: `url("${listing?.images && listing.images[0]?.cloudinary_url ? listing.images[0].cloudinary_url  : "./dummy_apartment.png"}")`,
     backgroundPosition: "center",
     backgroundSize: "100% 100%"
   }

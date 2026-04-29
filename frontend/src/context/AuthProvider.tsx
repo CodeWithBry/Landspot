@@ -32,10 +32,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const result = await api.post('/api/auth/register', { email, name, password, role });
             setToken(result.data.token);
             setLoadingAuthentication(false);
-            router.push('/login');
         } catch (error) {
             setLoadingAuthentication(false);
             throw error;
+        } finally {
+            router.push('/login');
         }
     }
 

@@ -45,7 +45,7 @@ export const getListings = async (req: Request, res: Response) => {
 
 export const getListingById = async (req: Request, res: Response) => {
     const { listing_id } = req.body;
-    try {   
+    try {
         const query = `
             SELECT 
             l.id,
@@ -61,32 +61,31 @@ export const getListingById = async (req: Request, res: Response) => {
             l.lng,
             l.status,
             l.created_at,
-            COALESCE(
-            json_agg(
-                json_build_object(
-                'id',                   li.id,
-                'cloudinary_url',       li.cloudinary_url,
-                'cloudinary_public_id', li.cloudinary_public_id,
-                'display_order',        li.display_order
-                ) ORDER BY li.display_order
-            ) FILTER (WHERE li.id IS NOT NULL),
-            '[]'
-            ) AS images
+            CASE 
+                WHEN COUNT(li.id) = 0 THEN '[]'::json
+                ELSE json_agg(
+                    json_build_object(
+                        'id',                   li.id,
+                        'cloudinary_url',       li.cloudinary_url,
+                        'cloudinary_public_id', li.cloudinary_public_id,
+                        'display_order',        li.display_order
+                    ) ORDER BY li.display_order
+                )
+            END AS images
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
-            AND listing_id = $1
-            GROUP BY l.id
-            ORDER BY l.created_at DESC
+            WHERE l.id = $1
+            GROUP BY l.id;
         `;
         const result = await pool.query(query, [listing_id]);
-        if(result.rows) {
+        if (result.rows) {
             sendResponse(res, result.rows);
             return;
         }
 
         return;
     } catch (error) {
-        if(error instanceof Error) sendError(res, error.message);
+        if (error instanceof Error) sendError(res, error.message);
     }
 }
 

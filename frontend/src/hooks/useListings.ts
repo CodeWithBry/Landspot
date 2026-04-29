@@ -57,9 +57,9 @@ export function useListing(): UseListingType {
 
   const getListingById = async (listing_id: string): Promise<Listing | undefined> => {
     try {
-      const result = await api.post("/api/listings/get-listing-by-id", listing_id);
+      const result = await api.post("/api/listings/get-listing-by-id", {listing_id});
       if(result.data.data) {
-        return result.data.data;
+        return result.data.data[0];
       }
       return;
     } catch (error) {
