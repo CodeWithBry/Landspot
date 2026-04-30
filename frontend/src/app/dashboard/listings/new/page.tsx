@@ -31,7 +31,7 @@ function AddListing() {
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const [isProcesed, setIsProcessed] = useState<boolean>(false);
     const [registered, setIsRegistered] = useState<boolean>(false);
-    const [coordinates, setCoordinates] = useState<{lat: number, lng: number}>();
+    const [coordinates, setCoordinates] = useState<{ lat: number, lng: number }>();
     const [debounceValue, setDebounceValue] = useState<string>("");
     const [geocodeMessage, setGeocodeMessage] = useState<string>("");
     const [form, setForm] = useState<FormType>({
@@ -57,14 +57,14 @@ function AddListing() {
                 await api.post(`/api/cloudinary/upload`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
+                setIsProcessed(true);
             }
             router.push("/dashboard");
         } catch (error) {
-            console.log(error);
+            setIsProcessed(false);
             throw error;
         } finally {
             setIsProcessing(false);
-            setIsProcessed(true);
         }
     }
 
@@ -95,8 +95,7 @@ function AddListing() {
             try {
                 const res = await testAddress(debounceValue);
                 if (isActive && res) {
-                    console.log(res)
-                    setCoordinates({lat: res.lat, lng: res.lng});
+                    setCoordinates({ lat: res.lat, lng: res.lng });
                     setIsRegistered(true);
                     setGeocodeMessage("Address Registered.")
                 }
@@ -259,11 +258,11 @@ function AddListing() {
                             disabled={isProcessing}
                             className="btn md:w-1/2 w-full text-white flex justify-center place-items-center bg-accent-400 hover:bg-accent-500" >
                             {
-                                isProcesed && !isProcessing ? 
+                                isProcesed && !isProcessing ?
                                     <Check size={18} /> :
-                                        isProcessing ? <>
-                                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                        </> : "Confirm"
+                                    isProcessing ? <>
+                                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    </> : "Confirm"
                             }
                         </button>
                     </div>
