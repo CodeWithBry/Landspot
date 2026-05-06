@@ -6,28 +6,6 @@ export type GeocodingResult = {
     lng: number
 }
 
-export async function registerGeocode(address: string): Promise<GeocodingResult | null | undefined> {
-    try {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
-
-        const res = await fetch(url, {
-            headers: { 'User-Agent': 'Landspot/1.0 contact@landspot.com' }
-        })
-
-        const data = (await res.json()) as Array<{ lat: string; lon: string }>;
-        console.log(data)
-        if (!data.length) return null;
-
-        return {
-            lat: parseFloat(data[0].lat),
-            lng: parseFloat(data[0].lon)
-        }
-    } catch (error) {
-        console.log("ERROR GEOCODE REGISTRING: " + error)
-        throw error
-    }
-}
-
 export interface GeoLocation {
     lat: number;
     lon: number;

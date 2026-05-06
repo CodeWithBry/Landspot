@@ -11,11 +11,11 @@ const priceIcon = (price: number, imgURL: string) =>
         iconAnchor: [24, 12],
     })
 
-export function ListingMarker({ listing }: { listing: Listing }) {
+export function ListingMarker({ listing, locationIcon }: { listing: Listing, locationIcon?: string}) {
 
     return <Marker
         position={[listing.lat, listing.lng]}
-        icon={priceIcon(listing.price, "./loc.png")}
+        icon={priceIcon(listing.price, locationIcon ?? "./loc.png")}
     >
         <Popup>
             <div className="max-w-[190px] min-w-[150px]">

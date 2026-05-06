@@ -3,7 +3,7 @@
 import { navContext } from "@/context/NavigationProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { NavigationContextType } from "@/types/NavigationContextType";
-import { Bell, Heart, LayoutDashboard, LogIn, LogOut, LucideIcon, Map, Settings, User2 } from "lucide-react";
+import { Bell, Heart, LayoutDashboard, LogIn, LogOut, LucideIcon, Map, Settings, User2, X, Menu } from "lucide-react";
 import { useContext, useState } from "react";
 import Link from "next/link";
 
@@ -15,7 +15,7 @@ type Tab = {
 
 export function Sidebar() {
     const { user, logout } = useAuth();
-    const { showMenu, path } = useContext(navContext) as NavigationContextType;
+    const { showMenu, setShowMenu, path } = useContext(navContext) as NavigationContextType;
     const isAuthPath = path === "/login" || path === "/signup";
     const tabs: Tab[] = [
         { tabName: "Map", tabPath: "/", icon: Map },
@@ -25,10 +25,17 @@ export function Sidebar() {
     ];
     const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
 
-    return <div className={`${showMenu ? "w-60 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2" : "opacity-0 z-0 w-0 border-r-0"} overflow z-9999 flex flex-col justify-between border-r-gray-400`}>
+    return <div className={`${showMenu ? "w-60 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2 md:left-0 right-full" : "opacity-0 z-0 w-0 border-r-0"} h-full md:relative absolute overflow z-9999 flex flex-col justify-between border-r-gray-400 bg-white`}>
         <div className="flex flex-col gap-5">
-            <h3 className={`flex text-xl font-serif font-bold mt-5  ${showMenu ? "text-primary-300" : "bg-primary-300 text-white justify-center place-items-center rounded-md"}`}>
+            <h3 className={`flex text-xl font-serif font-bold mt-5 place-items-center  justify-between ${showMenu ? "text-primary-300" : "bg-primary-300 text-white justify-center place-items-center rounded-md"}`}>
                 {showMenu ? "Landspot" : "L"}
+                <button
+                    onClick={() => setShowMenu(prev => !prev)}
+                    className='md:hidden block p-2 rounded-full transition cursor-pointer  hover:bg-accent-400 hover:text-white'>
+                    {
+                        !showMenu ? <Menu size={16} /> : <X size={16} />
+                    }
+                </button>
             </h3>
             <ul className="flex flex-col h-full items-left gap-2">
                 {tabs.map((tab) => {
@@ -52,7 +59,7 @@ export function Sidebar() {
             {
                 user?.id ?
                     <div className={`relative flex justify-center place-items-center`}>
-                        <div className={`${showMenu && showUserMenu ? "block translate-x-[-50%] left-[50%] bottom-full mb-1 w-full" : !showMenu && showUserMenu ? "w-fit left-full bottom-[-7.5px] ml-4" :  "hidden"} absolute bg-white  border-2 cursor-pointer  border-accent-400 rounded-md`}>
+                        <div className={`${showMenu && showUserMenu ? "block translate-x-[-50%] left-[50%] bottom-full mb-1 w-full" : !showMenu && showUserMenu ? "w-fit left-full bottom-[-7.5px] ml-4" : "hidden"} absolute bg-white  border-2 cursor-pointer  border-accent-400 rounded-md`}>
                             <Link
                                 href={"/settings"}
                                 className={`px-3 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-sm hover:opacity-70 hover:bg-gray-200`}>

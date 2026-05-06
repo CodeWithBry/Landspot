@@ -14,15 +14,19 @@ const LeafletMap = dynamic(() => import('./LeafletMap'), {
 
 interface Props {
   listings: Listing[]
+  center?: [number, number] | null
   onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
+  onLocated?: (coords: [number, number]) => void
 }
 
-export default function MapView({ listings, onBoundsChange }: Props) {
-
-
+export default function MapView({ listings, onBoundsChange, center }: Props) {
   return (
     <div className="w-full h-full">
-      <LeafletMap center={[14.5995, 120.9842]} listings={listings} onBoundsChange={onBoundsChange} />
+      <LeafletMap 
+        key={center ? `${center[0]}-${center[1]}` : 'default'}
+        center={center ?? [14.5995, 120.9842]} 
+        listings={listings} 
+        onBoundsChange={onBoundsChange} />
     </div>
   )
 }

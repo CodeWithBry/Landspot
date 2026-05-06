@@ -77,12 +77,14 @@ export function useListing(): UseListingType {
     setLoadingListings(true);
     api.post('/api/listings/get-listings', { targetMin: 1, targetMax: 10 })
       .then(res => {
+        console.log(res.data.data)
         setListings([...res.data.data])
       })
       .catch(err => { console.log(err) })
       .finally(() => {
         if (user?.name) api.post('/api/listings/my-listing', { user })
           .then(res => {
+            console.log(myListings)
             setMyListings(res.data.data)
           })
           .catch(err => {
