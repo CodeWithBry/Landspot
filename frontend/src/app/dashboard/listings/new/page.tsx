@@ -31,7 +31,7 @@ function AddListing() {
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const [isProcesed, setIsProcessed] = useState<boolean>(false);
     const [registered, setIsRegistered] = useState<boolean>(false);
-    const [coordinates, setCoordinates] = useState<{lat: number, lng: number}>();
+    const [coordinates, setCoordinates] = useState<{ lat: number, lng: number }>();
     const [debounceValue, setDebounceValue] = useState<string>("");
     const [geocodeMessage, setGeocodeMessage] = useState<string>("");
     const [form, setForm] = useState<FormType>({
@@ -68,9 +68,13 @@ function AddListing() {
         }
     }
 
+    function removeFromFileList(idx: number) {
+        setFiles(prev => prev.filter((_, index) => index != idx))
+    }
+
     function handleChangeAddressValue(e: ChangeEvent<HTMLInputElement>) {
         setForm(prev => ({ ...prev, address: e.target.value }));
-        setDebounceValue(prev => e.target.value);
+        setDebounceValue(e.target.value);
     }
 
     function handleSaveFile(files: FileList | null) {
@@ -82,7 +86,15 @@ function AddListing() {
             if (file) uploadedFiles.push({ file, isPreviewed: i == 0 });
         }
 
-        setFiles([...uploadedFiles]);
+
+        setFiles(prev => {
+            const filteredDuplicateFiles = uploadedFiles.filter((img) =>
+                !prev.some((i) => i.file.name == img.file.name)
+            );
+
+            console.log(filteredDuplicateFiles);
+            return [...prev, ...filteredDuplicateFiles]
+        });
     }
 
     useEffect(() => {
@@ -96,7 +108,7 @@ function AddListing() {
                 const res = await testAddress(debounceValue);
                 if (isActive && res) {
                     console.log(res)
-                    setCoordinates({lat: res.lat, lng: res.lng});
+                    setCoordinates({ lat: res.lat, lng: res.lng });
                     setIsRegistered(true);
                     setGeocodeMessage("Address Registered.")
                 }
@@ -153,11 +165,20 @@ function AddListing() {
                                     width={60} height={60} />
                                 <p>Upload Image Here</p>
                             </> :
-                                <div className={``}>
-                                    <img
-                                        className="w-full h-auto"
-                                        src={files.length ? URL.createObjectURL(files[0].file) : ""}
-                                    />
+                                <div className={`flex w-[98%] mx-auto flex-col gap-2 my-2`}>
+                                    {
+                                        files.length && files.map((img, idx) => {
+                                            return <div className="flex place-items-center rounded-md gap-2 w-full px-2 py-1.5 border-2 border-gray-600">
+                                                <img src={URL.createObjectURL(img.file)} key={img.file.name + idx} className="w-10 h-10 object-fill" />
+                                                <p>{img.file.name}</p>
+
+                                                <button
+                                                    onClick={() => removeFromFileList(idx)} 
+                                                    className="cursor-pointer w-fit h-fit px-1.5 py-px ml-auto flex justify-center place-items-center"><X size={16}/></button>
+                                            </div>
+                                        })
+                                    }
+
                                 </div>
                         }
                     </label>
@@ -259,11 +280,11 @@ function AddListing() {
                             disabled={isProcessing}
                             className="btn md:w-1/2 w-full text-white flex justify-center place-items-center bg-accent-400 hover:bg-accent-500" >
                             {
-                                isProcesed && !isProcessing ? 
+                                isProcesed && !isProcessing ?
                                     <Check size={18} /> :
-                                        isProcessing ? <>
-                                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                        </> : "Confirm"
+                                    isProcessing ? <>
+                                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    </> : "Confirm"
                             }
                         </button>
                     </div>

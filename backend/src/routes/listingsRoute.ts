@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAgentListing, createNewListing, getListings, testAddress, loadListings, getListingById } from "../controllers/listings.controllers";
+import { getAgentListing, createNewListing, getListings, testAddress, loadListings, getListingById, searchListings, deleteListing } from "../controllers/listings.controllers";
 import { requireRole } from "../middleware/roleGuard";
 import { requireAuth } from "../middleware/auth.middleware";
 
@@ -11,5 +11,8 @@ router.post("/add-listing", requireAuth, requireRole('agent'), createNewListing)
 router.post("/my-listing", getAgentListing); 
 router.post("/test-address", testAddress);
 router.post("/load-listings", loadListings);
+router.post("/delete-list/:params", requireRole('agent'), deleteListing);
+router.get("/search/:params", searchListings);
+
 
 export default router;

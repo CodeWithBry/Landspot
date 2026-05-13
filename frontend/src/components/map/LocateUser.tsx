@@ -1,24 +1,34 @@
 'use client'
 import { useMap } from 'react-leaflet'
-import { useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 
 interface Props {
   center?: [number, number] | null;
+  setCenter?: Dispatch<SetStateAction<[number, number] | null>>
 }
 
-export default function LocateUser({ center }: Props) {
+export default function LocateUser({ center, setCenter }: Props) {
   const map = useMap()
-  const [userMarker, setUserMarker] = useState<L.Marker | null>(null)
-  const [userCircle, setUserCircle] = useState<L.Circle | null>(null)
+
+  const userMarkerRef = useRef<L.Marker | null>(null);
+  const userCircleRef = useRef<L.Circle | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   const locateUser = () => {
+    if (setCenter) setCenter(null)
     map.locate({ setView: true, maxZoom: 16 })
 
     map.on('locationfound', (e: L.LocationEvent) => {
       // Remove previous marker and circle if they exist
-      if (userMarker) map.removeLayer(userMarker)
-      if (userCircle) map.removeLayer(userCircle)
+      if (userMarkerRef.current) {
+        map.removeLayer(userMarkerRef.current);
+        userMarkerRef.current = null;
+      }
+      if (userCircleRef.current) {
+        map.removeLayer(userCircleRef.current);
+        userCircleRef.current = null;
+      }
 
       // Blue dot icon for user location
       const userIcon = L.divIcon({
@@ -52,8 +62,8 @@ export default function LocateUser({ center }: Props) {
         weight: 1,
       }).addTo(map)
 
-      setUserMarker(marker)
-      setUserCircle(circle)
+      userMarkerRef.current = marker;
+      userCircleRef.current = circle;
     })
 
     map.on('locationerror', (e: L.ErrorEvent) => {
@@ -64,10 +74,16 @@ export default function LocateUser({ center }: Props) {
 
   // Clean up layers when component unmounts
   useEffect(() => {
-    if(center && center[0] == 14.5995) locateUser();
+    const isDefaultCenter = center && center[0] === 14.5995 && center[1] === 120.9842;
+
+    if (isDefaultCenter) {
+      locateUser();
+    } else if(center) {
+      map.flyTo(center, 14, { animate: true, duration: 1.5 });
+    }
 
     return () => {
-      map.stopLocate()
+      map.stopLocate();
     }
   }, [map])
 

@@ -18,22 +18,33 @@ function Map() {
   const wrapper = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isFocused, setIsFocused] = useState<boolean>(false);
-  const [searchInput, setSearchInput] = useState<string>("");
+  const [zoom, setZoom] = useState<number | null>(null);
+  const [noResults, setNoResults] = useState<boolean>(false);
   const [center, setCenter] = useState<[number, number] | null>(null);
   const [results, setResults] = useState<Listing[] | null>(null);
-  
-  function handleLocated (coords: [number, number]) {
-    setCenter(coords);
-  }
 
   useEffect(() => {
     async function searchListing() {
-      const res = await api.post("/api/listing/search", val);
-      // CONTINUE HERE!!!!
+      try {
+        const { data } = (await api.get(`/api/listings/search/${val}`)).data;
+        if (!data?.length) {
+          return setNoResults(true)
+        }
+        setNoResults(false);
+        setResults([...data]);
+      } catch (error) {
+        console.log(error);
+        throw error
+      }
     }
 
-    if(val) searchListing()
+    if (val) searchListing()
+    else setResults(null)
   }, [val])
+
+  useEffect(() => {
+    console.log(center)
+  }, [center])
 
   useEffect(() => {
     const input = inputRef?.current
@@ -63,7 +74,7 @@ function Map() {
   }, [])
 
   return (
-    <div className="flex transition w-full h-full overflow-auto overflow-x-hidden relative">
+    <div className="flex transition w-full h-full overflow-auto overflow-x-hidden relative z-0">
       <div
         ref={wrapper}
         className='md:w-90 w-[calc(100%_-_16px)] mx-2 p-2 px-3 font-serif flex place-items-center gap-2 absolute top-3 left-0 z-999 bg-white shadow-xl rounded-xl border-px border-gray-300'
@@ -85,33 +96,34 @@ function Map() {
           onChange={(e: ChangeEvent<HTMLInputElement>) => setDebounceVal(e.target.value)} />
         <div
           onMouseDown={(e) => e.preventDefault()}
-          className={`absolute top-full ${isFocused ? "flex flex-col" : "hidden"} p-3 left-0 w-[calc(100%)] max-h-[300px] h-auto shadow-xl rounded-xl bg-white`}>
+          className={`absolute top-full ${isFocused && val ? "flex flex-col" :  "hidden"} p-3 left-0 w-[calc(100%)] max-h-[300px] h-auto shadow-xl rounded-xl bg-white`}>
           {
-            listings.map((list) => {
-              return <label
-                htmlFor='set-center'
-                className={`flex gap-2 p-3 w-full left-0 bg-white hover:bg-gray-300 transition-all cursor-pointer *:text-black`}
-                key={list.address}
-                onClick={() => {
-                  console.log([list.lat, list.lng])
-                  setCenter([list.lat, list.lng])
-                  setIsFocused(false)
-                  setSearchInput(list.title)
-                }}>
-                <button id='set-center' className='hidden' />
-                <img
-                  className='w-10 h-10'
-                  src={list.images && list.images[0]?.cloudinary_url ? list.images[0].cloudinary_url : "./dummy_apartment.png"} />
-                <div className='flex flex-col gap-px'>
-                  <h2 className='text-md'>{list.title}</h2>
-                  <p className='text-sm'>{list.address}</p>
-                </div>
-              </label>
-            })
+            noResults ?
+              <p className='font-serif text-md'> No Result </p> :
+              results?.map((list) => {
+                return <label
+                  htmlFor='set-center'
+                  className={`flex gap-2 p-3 w-full left-0 bg-white hover:bg-gray-300 transition-all cursor-pointer *:text-black`}
+                  key={list.address}
+                  onClick={() => {
+                    setZoom(16)
+                    setCenter([list.lat, list.lng])
+                    setIsFocused(false)
+                  }}>
+                  <button id='set-center' className='hidden' />
+                  <img
+                    className='w-10 h-10'
+                    src={list.images && list.images[0]?.cloudinary_url ? list.images[0].cloudinary_url : "./dummy_apartment.png"} />
+                  <div className='flex flex-col gap-px'>
+                    <h2 className='text-md'>{list.title}</h2>
+                    <p className='text-sm'>{list.address}</p>
+                  </div>
+                </label>
+              })
           }
         </div>
       </div>
-      <MapView listings={listings} center={center} onLocated={handleLocated} />
+      <MapView listings={listings} center={center} zoom={zoom} setCenter={setCenter} />
     </div>
   )
 }

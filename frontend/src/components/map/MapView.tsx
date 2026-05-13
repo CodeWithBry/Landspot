@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { Listing } from '@/types/ListingType'
+import { Dispatch, SetStateAction } from 'react'
 
 const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ssr: false,
@@ -14,18 +15,23 @@ const LeafletMap = dynamic(() => import('./LeafletMap'), {
 
 interface Props {
   listings: Listing[]
-  center?: [number, number] | null
+  center?: [number, number] | null,
+  zoom?: number | null
   onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
-  onLocated?: (coords: [number, number]) => void
+  setCenter?: Dispatch<SetStateAction<[number, number] | null>>,
+  locationIcon?: string
 }
 
-export default function MapView({ listings, onBoundsChange, center }: Props) {
+export default function MapView({ listings, onBoundsChange, zoom, center, setCenter, locationIcon }: Props) {
   return (
     <div className="w-full h-full">
       <LeafletMap 
         key={center ? `${center[0]}-${center[1]}` : 'default'}
-        center={center ?? [14.5995, 120.9842]} 
+        center={center ?? [14.5995, 120.9842]}
+        setCenter={setCenter} 
         listings={listings} 
+        zoom={zoom ?? 12}
+        locationIcon={locationIcon}
         onBoundsChange={onBoundsChange} />
     </div>
   )

@@ -7,6 +7,7 @@
     --color-border: #E2E8F0;
     --color-border-strong: #CBD5E1;
     --color-text-primary: #0F172A;
+    --color-semi-transparent: #0000006c;
     --color-text-secondary: #475569;
     --color-text-muted: #94A3B8;
     --color-primary-50: #EEF2FF;
@@ -32,6 +33,7 @@
     --font-body: "DM Sans", "Helvetica Neue", sans-serif;
     --font-mono: "JetBrains Mono", monospace;
     --font-serif: var(--font-roboto-slab), serif;
+    --text-2xs: 7px;
     --text-xs: 11px;
     --text-s: 13px;
     --text-m: 15px;
@@ -49,6 +51,7 @@
     --tracking-wide: 0.08em;
     --tracking-widest: 0.2em;
     /* ─── Core Palette ─── */
+    --color-semi-transparent: #0000006c;
     --color-bg: #F8FAFC;
     --color-surface: #FFFFFF;
     --color-surface-alt: #F1F5F9;

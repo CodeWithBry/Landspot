@@ -163,21 +163,35 @@ export const createNewListing = async (req: Request, res: Response) => {
     }
 }
 
+export const deleteListing = async (req: Request, res: Response) => {
+    const {user_id} = req.body;
+    const {params} = req.params;
+    try {
+        const query = `
+            ALTER INTO listings 
+        `
+    } catch (error) {
+        if(error instanceof Error) sendError(res, error.message);
+        throw error;
+    }
+} 
+
 export async function searchListings(req: Request, res: Response) {
-    const { searchParams } = req.body;
+    const { params } = req.params;
+    console.log(params)
     try {
         const query = `
             SELECT agent_id, title, description, property_type, price, bedrooms, bathrooms, address, lat, lng from listings 
-            WHERE title = $1 OR bathrooms = $2 OR address = $3
+            WHERE title ILIKE $1 OR description ILIKE $1;
         `;
-
-        const result = await pool.query(query, [searchParams, searchParams, searchParams]);
+        const keyword = `%${params}%`
+        const result = await pool.query(query, [keyword]);
         const data = result.rows;
         if (data.length) {
-            sendResponse(res, data);
+            return sendResponse(res, data);
         }
 
-        return { message: "Listing not found" };
+        return sendResponse(res, { message: "Listing not found" });
     } catch (error) {
         if (error instanceof Error) sendError(res, error.message);
         throw error

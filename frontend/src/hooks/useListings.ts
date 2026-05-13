@@ -10,10 +10,12 @@ export type UseListingType = {
   setMyListings: Dispatch<SetStateAction<Listing[]>>,
   loadingListings: boolean,
   error?: Error | string,
-  addNewListing: (form: ListingForm) => Promise<Listing | undefined>;
+  addNewListing: (form: ListingForm) => Promise<Listing | undefined>,
   testAddress: (address: string) => Promise<{ lat: number, lng: number } | undefined>,
-  getListingById: (listing_id: string) => Promise<Listing | undefined>
-  uploadToCloudinary: () => void;
+  getListingById: (listing_id: string) => Promise<Listing | undefined>,
+  uploadToCloudinary: () => void,
+  deleteFromListing: (id: string, user_id: string) => void,
+  updateListing: (listing: Listing) => void
 }
 
 export function useListing(): UseListingType {
@@ -57,8 +59,8 @@ export function useListing(): UseListingType {
 
   const getListingById = async (listing_id: string): Promise<Listing | undefined> => {
     try {
-      const result = await api.post("/api/listings/get-listing-by-id", {listing_id});
-      if(result.data.data) {
+      const result = await api.post("/api/listings/get-listing-by-id", { listing_id });
+      if (result.data.data) {
         return result.data.data[0];
       }
       return;
@@ -68,9 +70,31 @@ export function useListing(): UseListingType {
     }
   }
 
+  const updateListing = async (listing: Listing) => {
+    try {
+      await api.post(`/api/listings/update-listing/${listing.id}`, { listing });
+      setListings(prev => prev?.map((list) => list.id == listing.id ? ({...listing}) : list));
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
   const uploadToCloudinary = async () => {
 
   };
+
+  const deleteFromListing = async (id: string, user_id: string) => {
+    try {
+      setListings(prev => prev.filter((list) => {
+        return list.id != id;
+      }))
+      await api.post(`/api/listings/delete-list/${id}`, { user_id: user_id });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 
   useEffect(() => {
     if (!isDataLoaded) return;
@@ -96,5 +120,12 @@ export function useListing(): UseListingType {
       });
   }, [isDataLoaded, user?.id])
 
-  return { listings, myListings, setListings, setMyListings, getListingById, loadingListings, error, addNewListing, testAddress, uploadToCloudinary };
+  return {
+    listings, myListings,
+    setListings, setMyListings,
+    getListingById, loadingListings,
+    error, addNewListing,
+    testAddress, uploadToCloudinary,
+    deleteFromListing, updateListing
+  };
 }

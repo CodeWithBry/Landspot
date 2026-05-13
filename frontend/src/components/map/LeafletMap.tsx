@@ -1,35 +1,24 @@
 'use client'
 import { Listing, MapType } from "@/types/ListingType";
-import { ReactNode, useEffect } from "react";
+import { Dispatch, ReactNode, SetStateAction, useEffect } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { ListingMarker } from "./ListingMarker";
 import LocateUser from "./LocateUser";
+import FlyToCenter from "./FlyToCenter";
 
 interface Props {
     listings: Listing[]
     center?: [number, number]
-    zoom?: number
+    zoom?: number,
+    setCenter?: Dispatch<SetStateAction<[number, number] | null>>
     onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
 }
-
-function FlyToCenter({ center }: { center: [number, number] }) {
-    const map = useMap()
-
-    useEffect(() => {
-        map.flyTo(center, 15, {
-            animate: true,
-            duration: 1.2,
-        })
-    }, [center, map])
-
-    return null
-}
-
 
 function LeafletMap({
     listings,
     center = [14.5995, 120.9842],
     zoom = 12,
+    setCenter,
     onBoundsChange,
     children,
     locationIcon
@@ -48,7 +37,10 @@ function LeafletMap({
         {listings?.map(listing => (
             <ListingMarker key={listing.id} listing={listing} locationIcon={locationIcon} />
         ))}
-        <LocateUser center={center}/>
+        {!locationIcon ?
+            <LocateUser center={center} setCenter={setCenter}/> :
+            <FlyToCenter center={center} />}
+
         {/* <BoundsWatcher onBoundsChange={onBoundsChange} /> */}
     </MapContainer>
 }
