@@ -37,14 +37,14 @@ export default function ViewListing() {
                     <Link 
                         href="/"
                         className="font-serif text-xs px-3 py-1.5 cursor-pointer rounded-md bg-accent-500 text-white hover:opacity-70 active:opacity-100 absolute right-2 top-2">Back</Link>
-                    <div className="flex overflow-x-scroll snap-x snap-mandatory absolute translate-y-[-50%] top-[50%]">
+                    <div className="w-full flex overflow-x-scroll snap-x snap-mandatory absolute translate-y-[-50%] top-[50%]">
                         {listing?.images && listing.images.map((img, idx) => {
                             const src = idx === 0
                                 ? (img.cloudinary_url || "../dummy_apartment.png")
                                 : img.cloudinary_url;
 
                             return (
-                                <img
+                                <img    
                                     src={src}
                                     key={img.cloudinary_url + idx}
                                     className="w-full h-auto object-cover block snap-center shrink-0"

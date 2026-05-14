@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { pool } from "../db";
 import { sendError, sendResponse } from "../utils/response";
 import { registerGeocodeUsingGeoapify } from "../services/geocodeService";
+import { deleteImage } from "../services/cloudinaryServices";
 
 export const getListings = async (req: Request, res: Response) => {
     try {
@@ -164,17 +165,34 @@ export const createNewListing = async (req: Request, res: Response) => {
 }
 
 export const deleteListing = async (req: Request, res: Response) => {
-    const {user_id} = req.body;
-    const {params} = req.params;
+    const { user_id } = req.body;
+    const { params } = req.params;
     try {
         const query = `
-            ALTER INTO listings 
+            DELETE FROM listings
+            WHERE id = $1 AND agent_id = $2; 
         `
+        await pool.query(query, [params, user_id])
     } catch (error) {
-        if(error instanceof Error) sendError(res, error.message);
+        if (error instanceof Error) sendError(res, error.message);
         throw error;
     }
-} 
+}
+
+export const deleteFromListingImages = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { public_id } = req.body; 
+    try {
+        const query = `
+            DELETE FROM listing_images
+            WHERE id = $1;
+        `
+        await pool.query(query, [id]);
+        deleteImage(public_id)
+    } catch (error) {
+        if (error instanceof Error) sendError(res, error.message)
+    }
+}
 
 export async function searchListings(req: Request, res: Response) {
     const { params } = req.params;

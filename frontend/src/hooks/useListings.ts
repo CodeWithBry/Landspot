@@ -73,7 +73,7 @@ export function useListing(): UseListingType {
   const updateListing = async (listing: Listing) => {
     try {
       await api.post(`/api/listings/update-listing/${listing.id}`, { listing });
-      setListings(prev => prev?.map((list) => list.id == listing.id ? ({...listing}) : list));
+      setListings(prev => prev?.map((list) => list.id == listing.id ? ({ ...listing }) : list));
     } catch (error) {
       console.log(error);
       throw error;
@@ -86,9 +86,19 @@ export function useListing(): UseListingType {
 
   const deleteFromListing = async (id: string, user_id: string) => {
     try {
-      setListings(prev => prev.filter((list) => {
-        return list.id != id;
-      }))
+      setListings(prev => {
+        const updatedListings = prev.filter((list) => {
+          return list.id != id;
+        })
+        return [...updatedListings]
+      })
+      setMyListings(prev => {
+        const updatedListings = prev.filter((list) => {
+          return list.id != id;
+        })
+        return [...updatedListings]
+      })
+
       await api.post(`/api/listings/delete-list/${id}`, { user_id: user_id });
     } catch (error) {
       console.log(error);

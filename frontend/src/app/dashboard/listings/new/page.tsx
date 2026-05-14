@@ -107,7 +107,6 @@ function AddListing() {
             try {
                 const res = await testAddress(debounceValue);
                 if (isActive && res) {
-                    console.log(res)
                     setCoordinates({ lat: res.lat, lng: res.lng });
                     setIsRegistered(true);
                     setGeocodeMessage("Address Registered.")
