@@ -18,13 +18,13 @@ const properties = [
 ]
 
 function EditListing() {
-    const [val, debounceValue, setDebounceValue] = useDebounce();
+    const [val, _, setDebounceValue] = useDebounce();
     const { listings, updateListing, testAddress, getListingById } = useListing();
     const { setShowMenu, showMenu } = useContext(navContext) as NavigationContextType;
     const { id } = useParams<{ id: string }>();
+    const [changesDetected, setChangesDetected] = useState<boolean>(false);
     const [isRegistring, setIsRegistring] = useState<boolean>(false);
     const [isRegistered, setIsRegistered] = useState<boolean>(false);
-    const [isdisabled, setIsdisabled] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [geocodeMessage, setGeocodeMessage] = useState<string>("");
@@ -33,7 +33,7 @@ function EditListing() {
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!listing) return;
-        setIsSaving(true)
+        setIsSaving(true);
         try {
             updateListing(listing);
             setIsSaving(false);
@@ -116,9 +116,19 @@ function EditListing() {
         getListing();
     }, [])
 
+    useEffect(() => {
+        if(listing) {
+            setIsSaved(false);
+            setIsSaving(false);
+        }
+    } ,[listing])
+
+
     return (
         <section className="w-full h-full relative flex justify-center overflow-x-hidden overflow-y-scroll z-0">
-            <div className="min-w-70 w-full h-full flex flex-col mx-5 mt-5 ">
+            <form
+                onSubmit={handleSubmit}
+                className="min-w-70 w-full h-full flex flex-col mx-5 mt-5 ">
                 <h2 className="text-black font-serif text-2xl font-bold flex gap-2 place-items-center sticky top-0 z-1 bg-white py-2">
                     <button
                         onClick={() => setShowMenu(prev => !prev)}
@@ -136,11 +146,19 @@ function EditListing() {
                     <button
                         onClick={() => setShowMenu(prev => !prev)}
                         className='flex place-items-center gap-1 rounded-md p-3 text-sm transition cursor-pointer  bg-accent-400 text-white'>
-                        {!isSaving && <Save size={16}></Save>}
-                        <span className="md:block hidden">{isSaving ? "Saving" : "Save"}</span>
+                        {
+                            !isSaving && !isSaved ?
+                                <>
+                                    <Save size={16} />
+                                    <span className="md:block hidden">Save</span>
+                                </> :
+                                isSaved ? <Check size={18} /> :
+                                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        }
                     </button>
                 </h2>
-                <form className="w-full max-w-150 mx-auto h-fit flex flex-col gap-3 py-2">
+                <div
+                    className="w-full max-w-150 mx-auto h-fit flex flex-col gap-3 py-2">
                     <div className="relative h-100">
                         <div
                             id="image_container"
@@ -236,7 +254,7 @@ function EditListing() {
                                     type="number"
                                     value={listing && listing.price}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setListing(prev =>
-                                        prev ?  ({ ...prev, price: Number(e.target.value) }) : prev)
+                                        prev ? ({ ...prev, price: Number(e.target.value) }) : prev)
                                     } />
                             </label>
                             <label className="flex flex-col gap-2 md:w-1/2 w-full">
@@ -281,8 +299,8 @@ function EditListing() {
                             </label>
                         </div>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </section>
     )
 }

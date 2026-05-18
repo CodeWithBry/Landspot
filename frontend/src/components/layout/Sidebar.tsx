@@ -27,7 +27,7 @@ export function Sidebar() {
 
     return (
         <div
-            className={`${showMenu ? "md:w-fit w-full absolute" : !isAuthPath ? "w-fit md:relative md:flex hidden" : "absolute hidden"} md:relative  h-full bg-semi-transparent z-1 flex`}>
+            className={`${showMenu ? "md:w-fit w-full absolute" : !isAuthPath ? "w-fit md:relative md:flex hidden" : "relative w-0"} md:relative  h-full bg-semi-transparent z-1 flex`}>
             <div className={`${showMenu ? "w-60 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2 md:left-0 right-full" : "opacity-0 z-0 w-0 border-r-0"} h-full md:relative overflow z-1 flex flex-col justify-between border-r-gray-400 bg-white`}>
                 <div className="flex flex-col gap-5">
                     <h3 className={`flex text-xl font-serif font-bold mt-5 place-items-center  justify-between ${showMenu ? "text-primary-300" : "bg-primary-300 text-white justify-center place-items-center rounded-md"}`}>

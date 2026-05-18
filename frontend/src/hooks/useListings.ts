@@ -72,7 +72,7 @@ export function useListing(): UseListingType {
 
   const updateListing = async (listing: Listing) => {
     try {
-      await api.post(`/api/listings/update-listing/${listing.id}`, { listing });
+      const updateResult = await api.post(`/api/listings/update-listing`, { listing });
       setListings(prev => prev?.map((list) => list.id == listing.id ? ({ ...listing }) : list));
     } catch (error) {
       console.log(error);
