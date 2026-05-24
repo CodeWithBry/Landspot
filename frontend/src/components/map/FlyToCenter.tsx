@@ -8,7 +8,6 @@ export default function FlyToCenter({ center }: { center: [number, number] }) {
     const map = useMap();
 
     function transportToCenter() {
-        console.log("hello")
         map.flyTo(center, 15, {
             animate: true,
             duration: 1.2,

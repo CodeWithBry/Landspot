@@ -2,6 +2,23 @@ import { Request, Response } from "express";
 import { pool } from "../db";
 import { sendError, sendResponse } from "../utils/response";
 import { registerGeocodeUsingGeoapify } from "../services/geocodeService";
+import { deleteImage } from "../services/cloudinaryServices";
+
+export const getAgentById = async (req: Request, res: Response) => {
+    try {
+        const { agent_id } = req.params;
+        const query = `
+            SELECT email, name FROM users WHERE id = $1;
+        `
+        const result = await pool.query(query, [agent_id]);
+        if (result.rows) {
+            sendResponse(res, result.rows[0]);
+        }
+    } catch (error) {
+        console.log(error);
+        if (error instanceof Error) sendError(res, error.message);
+    }
+}
 
 export const getListings = async (req: Request, res: Response) => {
     try {
@@ -164,17 +181,77 @@ export const createNewListing = async (req: Request, res: Response) => {
 }
 
 export const deleteListing = async (req: Request, res: Response) => {
-    const {user_id} = req.body;
-    const {params} = req.params;
+    const { user_id } = req.body;
+    const { params } = req.params;
     try {
         const query = `
-            ALTER INTO listings 
+            DELETE FROM listings
+            WHERE id = $1 AND agent_id = $2; 
         `
+        await pool.query(query, [params, user_id])
     } catch (error) {
-        if(error instanceof Error) sendError(res, error.message);
+        if (error instanceof Error) sendError(res, error.message);
         throw error;
     }
-} 
+}
+
+export const udpateListing = async (req: Request, res: Response) => {
+    const { listing } = req.body;
+    const {
+        title,
+        description,
+        property_type,
+        price,
+        bedrooms,
+        bathrooms,
+        lat,
+        lng,
+        address,
+        status,
+        agent_id,
+        id
+    } = listing;
+    try {
+        const query = `
+            UPDATE listings
+            SET title = $1,
+                description = $2,
+                property_type = $3,
+                price = $4,
+                bedrooms = $5,
+                bathrooms = $6,
+                address = $7,
+                lat = $8,
+                lng = $9,
+                status = $10
+            WHERE agent_id = $11
+            AND id = $12
+            RETURNING *;
+        `
+        const result = await pool.query(query, [title, description, property_type, price, bedrooms, bathrooms, address, lat, lng, status, agent_id, id]);
+        if (result.rows) {
+            sendResponse(res, result.rows);
+        }
+    } catch (error) {
+        console.log(error)
+        if (error instanceof Error) sendError(res, error.message)
+    }
+}
+
+export const deleteFromListingImages = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { public_id } = req.body;
+    try {
+        const query = `
+            DELETE FROM listing_images
+            WHERE id = $1;
+        `
+        await pool.query(query, [id]);
+        deleteImage(public_id);
+    } catch (error) {
+        if (error instanceof Error) sendError(res, error.message)
+    }
+}
 
 export async function searchListings(req: Request, res: Response) {
     const { params } = req.params;

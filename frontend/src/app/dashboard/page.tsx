@@ -6,10 +6,10 @@ import { useListing } from "@/hooks/useListings"
 import { NavigationContextType } from "@/types/NavigationContextType";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 
 export default function Dashboard() {
-    const { myListings } = useListing();
+    const { myListings, deleteFromListing } = useListing();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
 
     return <>
@@ -29,8 +29,8 @@ export default function Dashboard() {
                     <Link href={`/dashboard/listings/new/`} className="btn text-white  bg-accent-400 hover:bg-accent-500">Create Listing</Link>
                 </header>
 
-                <div className="w-[90%] h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
-                    {myListings?.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
+                <div className="w-[90%] px-2 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
+                    {myListings?.map((listing) => <ListingCard key={listing.id} listing={listing} deleteFromListing={deleteFromListing} />)}
                 </div>
             </div>
         </section>

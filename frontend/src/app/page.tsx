@@ -74,7 +74,7 @@ function Map() {
   }, [])
 
   return (
-    <div className="flex transition w-full h-full overflow-auto overflow-x-hidden relative">
+    <div className="flex transition w-full h-full overflow-auto overflow-x-hidden relative z-0">
       <div
         ref={wrapper}
         className='md:w-90 w-[calc(100%_-_16px)] mx-2 p-2 px-3 font-serif flex place-items-center gap-2 absolute top-3 left-0 z-999 bg-white shadow-xl rounded-xl border-px border-gray-300'
