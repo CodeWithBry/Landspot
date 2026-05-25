@@ -7,11 +7,9 @@ import { api } from "@/lib/api";
 import { Listing, ListingForm, ListingImage } from "@/types/ListingType";
 import { NavigationContextType } from "@/types/NavigationContextType";
 import { X, Menu, Save, Locate, Check, Images } from "lucide-react";
-import { register } from "module";
-import { finalizeBundlerFromConfig } from "next/dist/lib/bundler";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ChangeEvent, FormEvent, MouseEvent, useContext, useEffect, useState } from "react"
+import { ChangeEvent, DragEvent, FormEvent, MouseEvent, useContext, useEffect, useState } from "react"
 import { FormType } from "../new/page";
 const properties = [
     'house', 'condo', 'apartment', 'lot'
@@ -29,6 +27,8 @@ function EditListing() {
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [geocodeMessage, setGeocodeMessage] = useState<string>("");
     const [listing, setListing] = useState<Listing | undefined>(listings.find(list => list.id === id));
+    const [files, setFiles] = useState<{ file: File, isPreviewed: boolean }[]>([]);
+    const [images, setImages] = useState<ListingImage[]>([]);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -54,6 +54,7 @@ function EditListing() {
             const updatedImages: ListingImage[] | undefined = listing?.images?.filter((img) => image.id != img.id);
             const updatedList: Listing | undefined = listing && { ...listing, images: updatedImages };
             setListing(prev => prev ? updatedList : prev);
+            setImages(updatedImages ? updatedImages : []);
             await api.post(
                 `/api/listings/delete-image/${getSelectedImage?.id}`,
                 {
@@ -64,6 +65,47 @@ function EditListing() {
         } catch (error) {
             console.log(error);
             throw error;
+        }
+    }
+
+    async function handleSetFile(filesArg: FileList | null) {
+        if (!filesArg) return;
+        let uploadedFiles: { file: File, isPreviewed: boolean }[] = [];
+        const filesLength = filesArg.length;
+        for (let i = 0; i < filesLength; i++) {
+            const file = filesArg[i];
+            if (file) uploadedFiles.push({ file, isPreviewed: i == 0 });
+        }
+
+        setFiles(prev => {
+            // remove duplicates
+            const filteredDuplicateFiles = uploadedFiles.filter((img) =>
+                !prev.some((i) => i.file.name == img.file.name)
+            );
+
+            return [...prev, ...filteredDuplicateFiles];
+        });
+
+        if (listing) {
+            try {
+                const formData = new FormData();
+                const filteredDuplicateFiles = uploadedFiles.filter((img) =>
+                    !files.some((i) => i.file.name == img.file.name)
+                );
+                const allFiles = [...files, ...filteredDuplicateFiles];
+                allFiles.map((file) => formData.append('images', file.file));
+                formData.append("listing_id", listing.id);
+                const result = await api.post(`/api/cloudinary/upload`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+                const dataImages = result.data.data as ListingImage[];
+                if (dataImages.length != 0) {
+                    setImages([...dataImages]);
+                }
+            } catch (error) {
+                console.log(error);
+                throw error;
+            }
         }
     }
 
@@ -106,7 +148,8 @@ function EditListing() {
         async function getListing() {
             try {
                 const res = await getListingById(id);
-                setListing(res)
+                setListing(res);
+                setImages(res?.images ? res.images : []);
             } catch (error) {
                 console.log(error);
                 throw error;
@@ -117,11 +160,11 @@ function EditListing() {
     }, [])
 
     useEffect(() => {
-        if(listing) {
+        if (listing) {
             setIsSaved(false);
             setIsSaving(false);
         }
-    } ,[listing])
+    }, [listing])
 
 
     return (
@@ -132,7 +175,7 @@ function EditListing() {
                 <h2 className="text-black font-serif text-2xl font-bold flex gap-2 place-items-center sticky top-0 z-1 bg-white py-2">
                     <button
                         onClick={() => setShowMenu(prev => !prev)}
-                        className='p-3 rounded-full transition cursor-pointer  hover:bg-accent-400 hover:text-white'>
+                        className='p-3 rounded-full transition cursor-pointer hover:bg-accent-400 hover:text-white'>
                         {
                             !showMenu ? <Menu size={18} /> : <X size={18} />
                         }
@@ -140,12 +183,12 @@ function EditListing() {
                     <span>Edit Listings</span>
                     <Link
                         href={"/dashboard"}
-                        className='flex place-items-center gap-1 rounded-md ml-auto p-3 text-sm transition cursor-pointer  bg-accent-400 text-white'>
+                        className='flex place-items-center gap-1 rounded-md ml-auto p-3 text-sm transition cursor-pointer  bg-accent-400 text-white hover:opacity-70 active:opacity-90'>
                         Cancel
                     </Link>
                     <button
                         onClick={() => setShowMenu(prev => !prev)}
-                        className='flex place-items-center gap-1 rounded-md p-3 text-sm transition cursor-pointer  bg-accent-400 text-white'>
+                        className='flex place-items-center gap-1 rounded-md p-3 text-sm transition cursor-pointer  bg-accent-400 text-white  hover:opacity-70 active:opacity-90'>
                         {
                             !isSaving && !isSaved ?
                                 <>
@@ -159,43 +202,67 @@ function EditListing() {
                 </h2>
                 <div
                     className="w-full max-w-150 mx-auto h-fit flex flex-col gap-3 py-2">
-                    <div className="relative h-100">
-                        <div
-                            id="image_container"
-                            className="h-full flex rounded-md overflow-x-scroll snap-x snap-mandatory relative">
-                            {listing?.images && listing.images.map((img, idx) => {
+                    {
+                        images.length != 0 ?
+                            <div className="relative h-100">
+                                <div
+                                    id="image_container"
+                                    className="h-full flex rounded-md overflow-x-scroll snap-x snap-mandatory relative">
+                                    {images.map((img, idx) => {
 
-                                return (
-                                    <img
-                                        src={img.cloudinary_url}
-                                        key={img.cloudinary_url + idx}
-                                        className="w-full h-auto object-cover block snap-center shrink-0"
-                                    />
-                                );
-                            })}
-                        </div>
-                        <div className="absolute bottom-6 right-6 gap-2 px-2 py-2 mx-3 flex flex-nowrap max-w-[180px] h-fit">
-                            {listing?.images && listing.images.map((img, idx) => {
-                                return <div
-                                    key={img.id}
-                                    className="w-fit h-fit relative">
-                                    <img
-                                        onClick={() => revealPhoto(idx)}
-                                        className="shrink-0 border-2 border-white rounded-md w-[90px] h-[60px]"
-                                        src={img.cloudinary_url} />
-                                    <button
-                                        onClick={(e: MouseEvent<HTMLButtonElement>) => deletePhoto(e, img)}
-                                        className="absolute top-1 right-1 cursor-pointer hover:bg-accent-400 hover:text-white rounded-full p-0.5"><X size={12} /></button>
+                                        return (
+                                            <img
+                                                src={img.cloudinary_url}
+                                                key={img.cloudinary_url + idx}
+                                                className="w-full h-auto object-cover block snap-center shrink-0"
+                                            />
+                                        );
+                                    })}
                                 </div>
-                            })}
-                        </div>
-                    </div>
-
+                                <div className="absolute bottom-6 right-6 gap-2 px-2 py-2 mx-3 flex flex-nowrap max-w-[180px] h-fit">
+                                    {images.map((img, idx) => {
+                                        return <div
+                                            key={img.id}
+                                            className="w-fit h-fit relative">
+                                            <img
+                                                onClick={() => revealPhoto(idx)}
+                                                className="shrink-0 border-2 border-white rounded-md w-[90px] h-[60px]"
+                                                src={img.cloudinary_url} />
+                                            <button
+                                                onClick={(e: MouseEvent<HTMLButtonElement>) => deletePhoto(e, img)}
+                                                className="absolute top-1 right-1 cursor-pointer hover:bg-accent-400 hover:text-white rounded-full p-0.5"><X size={12} /></button>
+                                        </div>
+                                    })}
+                                </div>
+                            </div>
+                            :
+                            <label
+                                onDragOver={(e: DragEvent<HTMLLabelElement>) => e.preventDefault()}
+                                onDrop={(e: DragEvent<HTMLLabelElement>) => {
+                                    e.preventDefault();
+                                    if (!e.dataTransfer.files) return;
+                                    handleSetFile(e.dataTransfer.files);
+                                }}
+                                htmlFor="fileUploader"
+                                className={`${!files.length && "py-10"} max-h-62.5 overflow-hidden w-full flex flex-col justify-center place-items-center border-2 border-primary-300 border-dashed rounded-2xl`}>
+                                <input
+                                    disabled={isRegistring}
+                                    className="hidden"
+                                    type="file"
+                                    id="fileUploader"
+                                    multiple
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleSetFile(e.target.files)} />
+                                <img
+                                    src={"../../upload.svg"}
+                                    width={60} height={60} />
+                                <p>Upload Image Here</p>
+                            </label>
+                    }
                     {/* Inputs */}
                     <label className="flex flex-col gap-2 w-full *:font-serif relative">
                         <p className="text-[10px] absolute top-[-5px] text-gray-500 left-0">Title:</p>
                         <input
-                            value={listing && listing.title}
+                            value={listing?.title ?? ""}
                             className="w-[clamp(50% - 24px)] py-2 px-3 border-0 border-b-2"
                             type="text"
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setListing(prev => prev ? ({ ...prev, title: e.target.value }) : prev)} />
@@ -224,7 +291,7 @@ function EditListing() {
                         </div>
                         <input
                             disabled={isSaving}
-                            value={listing && listing.address}
+                            value={listing?.address ?? ""}
                             type="text"
                             id="address"
                             className="w-full ml-3 outline-0"
@@ -252,7 +319,7 @@ function EditListing() {
                                 <input
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
-                                    value={listing && listing.price}
+                                    value={listing?.price ?? ""}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setListing(prev =>
                                         prev ? ({ ...prev, price: Number(e.target.value) }) : prev)
                                     } />
@@ -281,7 +348,7 @@ function EditListing() {
                                 <input
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
-                                    value={listing && listing.bedrooms}
+                                    value={listing?.bedrooms ?? ""}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setListing(prev =>
                                         prev ? ({ ...prev, bedrooms: Number(e.target.value) }) : prev)
                                     } />
@@ -291,7 +358,7 @@ function EditListing() {
                                 <input
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
-                                    value={listing && listing.bathrooms}
+                                    value={listing?.bathrooms ?? ""}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                         setListing(prev =>
                                             prev ? ({ ...prev, bathrooms: Number(e.target.value) }) : prev)

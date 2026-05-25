@@ -9,12 +9,8 @@ import Link from "next/link";
 import { useContext, useEffect } from "react";
 
 export default function Dashboard() {
-    const { myListings } = useListing();
+    const { myListings, deleteFromListing } = useListing();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
-
-    useEffect(() => {
-        console.log(myListings)
-    }, [myListings])
 
     return <>
         <section className="w-full h-full relative flex justify-center overflow-hidden overflow-y-auto">
@@ -34,7 +30,7 @@ export default function Dashboard() {
                 </header>
 
                 <div className="w-[90%] px-2 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
-                    {myListings?.map((listing) => <ListingCard key={listing.id} listing={listing} />)}
+                    {myListings?.map((listing) => <ListingCard key={listing.id} listing={listing} deleteFromListing={deleteFromListing} />)}
                 </div>
             </div>
         </section>

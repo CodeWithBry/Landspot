@@ -4,6 +4,22 @@ import { sendError, sendResponse } from "../utils/response";
 import { registerGeocodeUsingGeoapify } from "../services/geocodeService";
 import { deleteImage } from "../services/cloudinaryServices";
 
+export const getAgentById = async (req: Request, res: Response) => {
+    try {
+        const { agent_id } = req.params;
+        const query = `
+            SELECT email, name FROM users WHERE id = $1;
+        `
+        const result = await pool.query(query, [agent_id]);
+        if (result.rows) {
+            sendResponse(res, result.rows[0]);
+        }
+    } catch (error) {
+        console.log(error);
+        if (error instanceof Error) sendError(res, error.message);
+    }
+}
+
 export const getListings = async (req: Request, res: Response) => {
     try {
         const result = await pool.query(`
@@ -213,7 +229,7 @@ export const udpateListing = async (req: Request, res: Response) => {
             RETURNING *;
         `
         const result = await pool.query(query, [title, description, property_type, price, bedrooms, bathrooms, address, lat, lng, status, agent_id, id]);
-        if(result.rows) {
+        if (result.rows) {
             sendResponse(res, result.rows);
         }
     } catch (error) {

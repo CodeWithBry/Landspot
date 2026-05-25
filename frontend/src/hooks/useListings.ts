@@ -92,12 +92,7 @@ export function useListing(): UseListingType {
         })
         return [...updatedListings]
       })
-      setMyListings(prev => {
-        const updatedListings = prev.filter((list) => {
-          return list.id != id;
-        })
-        return [...updatedListings]
-      })
+      setMyListings(prev => prev.filter((list) => list.id != id));
 
       await api.post(`/api/listings/delete-list/${id}`, { user_id: user_id });
     } catch (error) {
@@ -129,6 +124,8 @@ export function useListing(): UseListingType {
         setLoadingListings(false)
       });
   }, [isDataLoaded, user?.id])
+
+  useEffect(() => { console.log(myListings) }, [myListings])
 
   return {
     listings, myListings,

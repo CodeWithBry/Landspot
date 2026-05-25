@@ -4,7 +4,7 @@ import { navContext } from "@/context/NavigationProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { NavigationContextType } from "@/types/NavigationContextType";
 import { Bell, Heart, LayoutDashboard, LogIn, LogOut, LucideIcon, Map, Settings, User2, X, Menu } from "lucide-react";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 
 type Tab = {

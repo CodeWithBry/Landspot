@@ -77,7 +77,7 @@ function AddListing() {
         setDebounceValue(e.target.value);
     }
 
-    function handleSaveFile(files: FileList | null) {
+    function handleSetFile(files: FileList | null) {
         if (!files) return;
         let uploadedFiles: { file: File, isPreviewed: boolean }[] = [];
         const filesLength = files.length;
@@ -86,14 +86,13 @@ function AddListing() {
             if (file) uploadedFiles.push({ file, isPreviewed: i == 0 });
         }
 
-
         setFiles(prev => {
+            // remove duplicates
             const filteredDuplicateFiles = uploadedFiles.filter((img) =>
                 !prev.some((i) => i.file.name == img.file.name)
             );
 
-            console.log(filteredDuplicateFiles);
-            return [...prev, ...filteredDuplicateFiles]
+            return [...prev, ...filteredDuplicateFiles];
         });
     }
 
@@ -147,7 +146,7 @@ function AddListing() {
                         onDrop={(e: DragEvent<HTMLLabelElement>) => {
                             e.preventDefault();
                             if (!e.dataTransfer.files) return;
-                            handleSaveFile(e.dataTransfer.files);
+                            handleSetFile(e.dataTransfer.files);
                         }}
                         htmlFor="fileUploader"
                         className={`${!files.length && "py-10"} max-h-62.5 overflow-hidden w-full flex flex-col justify-center place-items-center border-2 border-primary-300 border-dashed rounded-2xl`}>
@@ -156,7 +155,7 @@ function AddListing() {
                             className="hidden"
                             type="file"
                             id="fileUploader"
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleSaveFile(e.target.files)} />
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleSetFile(e.target.files)} />
                         {
                             !files.length ? <>
                                 <img
