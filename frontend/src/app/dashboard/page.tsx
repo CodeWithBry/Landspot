@@ -1,6 +1,6 @@
 "use client"
 
-import ListingCard from "@/components/listings/ListingCard";
+import MyListingCard from "@/components/listings/MyListingCard";
 import { navContext } from "@/context/NavigationProvider";
 import { useListing } from "@/hooks/useListings"
 import { NavigationContextType } from "@/types/NavigationContextType";
@@ -30,7 +30,7 @@ export default function Dashboard() {
                 </header>
 
                 <div className="w-[90%] px-2 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
-                    {myListings?.map((listing) => <ListingCard key={listing.id} listing={listing} deleteFromListing={deleteFromListing} />)}
+                    {myListings?.map((listing) => <MyListingCard key={listing.id} listing={listing} deleteFromListing={deleteFromListing} />)}
                 </div>
             </div>
         </section>

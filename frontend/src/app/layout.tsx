@@ -28,7 +28,7 @@ export default function RootLayout({
       className={`${inter.variable} w-full h-full`}>
       <body className="w-full h-full">
         <AuthProvider>
-          <div className="w-full h-full grid grid-cols-1 md:grid-cols-[auto_1fr]">
+          <div className="w-full h-full flex md:grid md:grid-cols-[auto_1fr]">
             <NavigationProvider>
               <Sidebar />
               {children}

@@ -51,7 +51,7 @@ export async function uploadFiles(req: Request, res: Response) {
 
             })
         )
-
+        console.log(uploaded)
         sendResponse(res, uploaded);
     } catch (error) {
         console.log(error);

@@ -14,13 +14,13 @@ export default function page() {
     });
 
     return (
-        <section className="w-full h-full grid grid-cols-2 items-center py-10">
-            <div className="w-50% h-full flex items-center justify-center">
+        <section className="w-full h-full flex justify-center md:grid md:grid-cols-2 items-center py-10">
+            <div className="w-50% h-full md:flex hidden items-center justify-center">
                 <div className="w-[90%] h-[90%] shadow-md rounded-2xl overflow-hidden flex">
                     <MapView listings={listings} />
                 </div>
             </div>
-            <div className="w-50% h-full flex items-center align-middle justify-center">
+            <div className="md:w-50% md:py-0 py-4 w-full h-full flex md:items-center align-middle justify-center">
                 <div className="w-fit h-fit flex flex-col gap-4">
                     <div className="flex-col flex gap-1 mb-10">
                         <h1 className="font-bold text-3xl w-full text-left text-nowrap font-serif">Welcome Back Landers!</h1>

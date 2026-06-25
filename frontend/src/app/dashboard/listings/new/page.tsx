@@ -17,6 +17,8 @@ export type FormType = {
     bedrooms: number
     bathrooms: number
     address: string
+    agent_email: string
+    agent_name: string
 };
 
 function AddListing() {
@@ -41,7 +43,9 @@ function AddListing() {
         price: 0,
         bedrooms: 0,
         bathrooms: 0,
-        address: ""
+        address: "",
+        agent_email: "",
+        agent_name: ""
     });
     const [files, setFiles] = useState<{ file: File, isPreviewed: boolean }[]>([]);
 
@@ -128,6 +132,10 @@ function AddListing() {
         };
     }, [debounceValue]);
 
+    useEffect(() => {
+        if(user?.email) setForm(prev => ({...prev, agent_email: user.email, agent_name: user.name}))
+    }, [user?.email])
+
     return (
         <section className="w-full h-full relative flex justify-center py-10 overflow-x-hidden overflow-y-scroll">
             <button
@@ -154,6 +162,7 @@ function AddListing() {
                         <input
                             disabled={isProcessing}
                             className="hidden"
+                            multiple
                             type="file"
                             id="fileUploader"
                             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSaveFile(e.target.files)} />

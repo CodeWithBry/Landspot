@@ -6,9 +6,10 @@ import L from 'leaflet'
 interface Props {
   center?: [number, number] | null;
   setCenter?: Dispatch<SetStateAction<[number, number] | null>>
+  setIsUserLocated: Dispatch<SetStateAction<boolean>>
 }
 
-export default function LocateUser({ center, setCenter }: Props) {
+export default function LocateUser({ center, setCenter, setIsUserLocated }: Props) {
   const map = useMap()
 
   const userMarkerRef = useRef<L.Marker | null>(null);
@@ -20,6 +21,8 @@ export default function LocateUser({ center, setCenter }: Props) {
     map.locate({ setView: true, maxZoom: 16 })
 
     map.on('locationfound', (e: L.LocationEvent) => {
+      console.log("yes")
+      setIsUserLocated(true)
       // Remove previous marker and circle if they exist
       if (userMarkerRef.current) {
         map.removeLayer(userMarkerRef.current);

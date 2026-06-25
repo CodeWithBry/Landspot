@@ -7,17 +7,20 @@ import { useListing } from '@/hooks/useListings';
 import { api } from '@/lib/api';
 import { Listing } from '@/types/ListingType';
 import { NavigationContextType } from '@/types/NavigationContextType';
-import { Menu, Search, X } from 'lucide-react';
-import Link from 'next/link';
+import { LocateIcon, Menu, Search, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
 
 function Map() {
+  const searchParams = useSearchParams();
+  const listingId = searchParams.get("id")
   const [val, debounceVal, setDebounceVal] = useDebounce();
   const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
-  const { listings } = useListing();
+  const { listings, getListingById } = useListing();
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const wrapper = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [isFocused, setIsFocused] = useState<boolean>(false);
   const [zoom, setZoom] = useState<number | null>(null);
   const [noResults, setNoResults] = useState<boolean>(false);
   const [center, setCenter] = useState<[number, number] | null>(null);
@@ -41,10 +44,6 @@ function Map() {
     if (val) searchListing()
     else setResults(null)
   }, [val])
-
-  useEffect(() => {
-    console.log(center)
-  }, [center])
 
   useEffect(() => {
     const input = inputRef?.current
@@ -73,6 +72,29 @@ function Map() {
     }
   }, [])
 
+  useEffect(() => {
+    async function defineListing() {
+      setLoading(true);
+      try {
+        if (listingId == null) return;
+        const listing = await getListingById(listingId);
+
+        if (listing) {
+          setCenter([listing.lat, listing.lng]);
+        }
+      } catch (error) {
+        throw error;
+      } finally { setLoading(false) }
+    }
+    if (listingId) defineListing()
+  }, [listingId])
+
+  if(loading) {
+    return <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
+      <span className="text-sm text-gray-400">Loading map...</span>
+    </div>
+  }
+
   return (
     <div className="flex transition w-full h-full overflow-auto overflow-x-hidden relative z-0">
       <div
@@ -96,14 +118,14 @@ function Map() {
           onChange={(e: ChangeEvent<HTMLInputElement>) => setDebounceVal(e.target.value)} />
         <div
           onMouseDown={(e) => e.preventDefault()}
-          className={`absolute top-full ${isFocused && val ? "flex flex-col" :  "hidden"} p-3 left-0 w-[calc(100%)] max-h-[300px] h-auto shadow-xl rounded-xl bg-white`}>
+          className={`absolute top-full ${isFocused && val ? "flex flex-col" : "hidden"} p-3 left-0 w-[calc(100%)] max-h-[300px] h-auto shadow-xl rounded-xl bg-white`}>
           {
             noResults ?
               <p className='font-serif text-md'> No Result </p> :
               results?.map((list) => {
                 return <label
                   htmlFor='set-center'
-                  className={`flex gap-2 p-3 w-full left-0 bg-white hover:bg-gray-300 transition-all cursor-pointer *:text-black`}
+                  className={`flex place-items-center gap-2 p-3 w-full left-0 bg-white hover:bg-gray-300 transition-all cursor-pointer *:text-black`}
                   key={list.address}
                   onClick={() => {
                     setZoom(16)
@@ -112,12 +134,14 @@ function Map() {
                   }}>
                   <button id='set-center' className='hidden' />
                   <img
-                    className='w-10 h-10'
+                    className='w-10 h-10 object-cover'
                     src={list.images && list.images[0]?.cloudinary_url ? list.images[0].cloudinary_url : "./dummy_apartment.png"} />
                   <div className='flex flex-col gap-px'>
                     <h2 className='text-md'>{list.title}</h2>
                     <p className='text-sm'>{list.address}</p>
                   </div>
+
+                  <LocateIcon size={26} className='block ml-auto'/>
                 </label>
               })
           }

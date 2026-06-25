@@ -13,6 +13,9 @@ export interface Listing {
   status: 'active' | 'sold' | 'inactive'
   created_at: string
   images?: ListingImage[]
+  isFavorite?: boolean
+  agent_email?: string
+  agent_name?: string 
 }
 
 export interface ListingForm {

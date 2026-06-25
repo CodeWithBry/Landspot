@@ -12,6 +12,7 @@ interface Props {
     zoom?: number,
     setCenter?: Dispatch<SetStateAction<[number, number] | null>>
     onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
+    setIsUserLocated: Dispatch<SetStateAction<boolean>>
 }
 
 function LeafletMap({
@@ -21,7 +22,8 @@ function LeafletMap({
     setCenter,
     onBoundsChange,
     children,
-    locationIcon
+    locationIcon,
+    setIsUserLocated
 }: Props & { children?: ReactNode, locationIcon?: string }) {
     return <MapContainer
         center={center}
@@ -38,7 +40,7 @@ function LeafletMap({
             <ListingMarker key={listing.id} listing={listing} locationIcon={locationIcon} />
         ))}
         {!locationIcon ?
-            <LocateUser center={center} setCenter={setCenter}/> :
+            <LocateUser center={center} setCenter={setCenter} setIsUserLocated={setIsUserLocated}/> :
             <FlyToCenter center={center} />}
 
         {/* <BoundsWatcher onBoundsChange={onBoundsChange} /> */}

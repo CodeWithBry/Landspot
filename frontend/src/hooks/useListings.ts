@@ -3,6 +3,8 @@ import { Listing, ListingForm } from "@/types/ListingType";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 import { defineError } from "@/utils/defineError";
+import { responseCookiesToRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import { FilterOptions } from "@/types/FilterOptionsType";
 
 export type UseListingType = {
   listings: Listing[], myListings: Listing[],
@@ -12,10 +14,13 @@ export type UseListingType = {
   error?: Error | string,
   addNewListing: (form: ListingForm) => Promise<Listing | undefined>,
   testAddress: (address: string) => Promise<{ lat: number, lng: number } | undefined>,
+  loadListingInitially: () => Promise<Listing[] | undefined>
+  loadListing: (filterOptions: FilterOptions) => Promise<Listing[] | undefined>
+  searchListing: (val: string) => Promise<Listing[] | undefined>
   getListingById: (listing_id: string) => Promise<Listing | undefined>,
   uploadToCloudinary: () => void,
   deleteFromListing: (id: string, user_id: string) => void,
-  updateListing: (listing: Listing) => void
+  updateListing: (listing: Listing, fileData: { file: File }[]) => Promise<undefined | Listing>
 }
 
 export function useListing(): UseListingType {
@@ -46,11 +51,20 @@ export function useListing(): UseListingType {
     }
   }
 
-  const loadListing = async (targetMin: number, targetMax: number): Promise<Listing[] | undefined> => {
+  const loadListingInitially = async (): Promise<Listing[] | undefined> => {
     try {
-      const res = await api.post('/api/listings/load-listings', { targetMin, targetMax })
-      setListings(prev => [...prev, ...res.data.data]);
-      return;
+      const res = await api.get('/api/listings/load-listings-initially');
+      return [...res.data.data];
+    } catch (error) {
+      console.log(error)
+      throw error
+    }
+  };
+
+  const loadListing = async (filterOptions: FilterOptions): Promise<Listing[] | undefined> => {
+    try {
+      const res = await api.post('/api/listings/load-listings', { ...filterOptions });
+      return [...res.data.data];
     } catch (error) {
       console.log(error)
       throw error
@@ -59,21 +73,41 @@ export function useListing(): UseListingType {
 
   const getListingById = async (listing_id: string): Promise<Listing | undefined> => {
     try {
-      const result = await api.post("/api/listings/get-listing-by-id", { listing_id });
+      const result = await api.post("/api/listings/get-listing-by-id", { listing_id, user_id: user?.id });
       if (result.data.data) {
         return result.data.data[0];
       }
-      return;
     } catch (error) {
       console.log(error);
       throw error
     }
   }
 
-  const updateListing = async (listing: Listing) => {
+  const searchListing = async (val: string): Promise<Listing[] | undefined> => {
     try {
-      const updateResult = await api.post(`/api/listings/update-listing`, { listing });
+      const { data } = (await api.get(`/api/listings/search/${val}`)).data;
+      console.log(data)
+      if (data) return data;
+    } catch (error) {
+      console.log(error);
+      throw error
+    }
+  }
+
+  const updateListing = async (listing: Listing, fileData: { file: File }[]): Promise<undefined | Listing> => {
+    try {
+      await api.post(`/api/listings/update-listing`, { listing });
       setListings(prev => prev?.map((list) => list.id == listing.id ? ({ ...listing }) : list));
+      if (fileData.length >= 0 && user?.name) {
+        const formData = new FormData();
+        fileData.forEach((file) => formData.append("images", file.file));
+        formData.append("listing_id", listing.id)
+        await api.post(`/api/cloudinary/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const { data } = (await api.post('/api/listings/get-listing-by-id', { listing_id: listing.id, user_id: user.id })).data;
+        return data[0] as Listing
+      } 
     } catch (error) {
       console.log(error);
       throw error;
@@ -106,15 +140,13 @@ export function useListing(): UseListingType {
     setLoadingListings(true);
     api.post('/api/listings/get-listings', { targetMin: 1, targetMax: 10 })
       .then(res => {
-        console.log(res.data.data)
         setListings([...res.data.data])
       })
       .catch(err => { console.log(err) })
       .finally(() => {
         if (user?.name) api.post('/api/listings/my-listing', { user })
-          .then(res => {
-            console.log(myListings)
-            setMyListings(res.data.data)
+          .then(result => {
+            setMyListings(result.data.data)
           })
           .catch(err => {
             console.log(err)
@@ -125,14 +157,15 @@ export function useListing(): UseListingType {
       });
   }, [isDataLoaded, user?.id])
 
-  useEffect(() => { console.log(myListings) }, [myListings])
 
   return {
     listings, myListings,
     setListings, setMyListings,
     getListingById, loadingListings,
     error, addNewListing,
-    testAddress, uploadToCloudinary,
+    testAddress, loadListingInitially,
+    searchListing,
+    loadListing, uploadToCloudinary,
     deleteFromListing, updateListing
   };
 }

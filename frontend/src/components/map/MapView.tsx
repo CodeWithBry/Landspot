@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { Listing } from '@/types/ListingType'
-import { Dispatch, SetStateAction } from 'react'
+import { Dispatch, SetStateAction, useState } from 'react'
 
 const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ssr: false,
@@ -23,16 +23,22 @@ interface Props {
 }
 
 export default function MapView({ listings, onBoundsChange, zoom, center, setCenter, locationIcon }: Props) {
-  return (
-    <div className="w-full h-full">
-      <LeafletMap 
-        key={center ? `${center[0]}-${center[1]}` : 'default'}
-        center={center ?? [14.5995, 120.9842]}
-        setCenter={setCenter} 
-        listings={listings} 
-        zoom={zoom ?? 12}
-        locationIcon={locationIcon}
-        onBoundsChange={onBoundsChange} />
+  const [isUserLocated, setIsUserLocated] = useState<boolean>(false);
+
+  return <div className="w-full h-full">
+    <div className={`w-full h-full bg-gray-100 animate-pulse ${isUserLocated ? "hidden" : "flex"} absolute z-9999 items-center justify-center`}>
+      <span className="text-sm text-gray-400">Loading map...</span>
     </div>
-  )
+    <LeafletMap
+      key={center ? `${center[0]}-${center[1]}` : 'default'}
+      center={center ?? [14.5995, 120.9842]}
+      setCenter={setCenter}
+      listings={listings}
+      zoom={zoom ?? 12}
+      locationIcon={locationIcon}
+      onBoundsChange={onBoundsChange}
+      setIsUserLocated={setIsUserLocated} />
+  </div>
+
+
 }

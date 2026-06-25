@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS listings (
   num_id        SERIAL UNIQUE,
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_name    VARCHAR(255) NOT NULL,
+  agent_email   VARCHAR(255) NOT NULL,
   agent_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title         VARCHAR(255) NOT NULL,
   description   TEXT NOT NULL DEFAULT '',

@@ -1,9 +1,11 @@
 "use client"
 import MapView from "@/components/map/MapView";
+import { useAuth } from "@/hooks/useAuth";
+import { useFavorites } from "@/hooks/useFavorites";
 import { useListing } from "@/hooks/useListings";
 import { api } from "@/lib/api";
 import { Listing } from "@/types/ListingType";
-import { Heart, Send } from "lucide-react";
+import { Heart, HeartHandshake, HeartIcon, Send } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -11,12 +13,14 @@ import { ChangeEvent, useEffect, useState } from "react";
 type Agent = { email: string, name: string };
 
 export default function ViewListing() {
+    const { user } = useAuth();
     const { getListingById } = useListing();
     const { id } = useParams<{ id: string }>();
+    const { handleFavoriteChange } = useFavorites();
     const [isSending, setIsSending] = useState<boolean>(false);
     const [isSent, setIsSent] = useState<boolean>(false);
     const [message, setMessage] = useState<string>("");
-    const [listing, setListing] = useState<Listing | null>(null);
+    const [listing, setListing] = useState<Listing | undefined>(undefined);
     const [agent, setAgent] = useState<Agent | null>(null);
 
     const getAgentById = async (agent_id: string): Promise<Agent | undefined> => {
@@ -26,6 +30,68 @@ export default function ViewListing() {
         } catch (err) {
             console.log(err);
             throw err;
+        }
+    }
+
+    const sendMessage = async () => {
+        setIsSending(true);
+        try {
+            const agent_id = listing?.agent_id
+            const subject = "New buyer inquiry for your property!"
+            const html = `
+                <div style="background:#f4f4f4; padding:2rem; font-family:Arial,sans-serif;">
+                    <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; border:1px solid #e0e0e0;">
+
+                    <!-- Header -->
+                    <div style="background:#185FA5; padding:1.5rem 2rem;">
+                        <span style="color:#E6F1FB; font-size:20px; font-weight:600;">Landspot</span>
+                    </div>
+
+                    <!-- Body -->
+                    <div style="padding:2rem;">
+                        <p style="font-size:14px; color:#666; margin:0 0 1.5rem;">
+                        You have received a new inquiry regarding one of your listings.
+                        </p>
+
+                        <p style="font-size:11px; font-weight:600; color:#999; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 4px;">From</p>
+                        <p style="font-size:14px; color:#111; margin:0 0 1.25rem;">${user?.email}</p>
+
+                        <p style="font-size:11px; font-weight:600; color:#999; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 4px;">Date</p>
+                        <p style="font-size:14px; color:#111; margin:0 0 1.25rem;">${new Date().toLocaleString("en-PH", { dateStyle: "long", timeStyle: "short" })}</p>
+
+                        <hr style="border:none; border-top:1px solid #e0e0e0; margin:1.25rem 0;" />
+
+                        <p style="font-size:11px; font-weight:600; color:#999; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 8px;">Message</p>
+                        <div style="background:#f9f9f9; border-left:3px solid #185FA5; border-radius:0 6px 6px 0; padding:1rem 1.25rem; font-size:14px; line-height:1.7; color:#111;">
+                        ${message}
+                        </div>
+                    </div>
+
+                    <div style="padding:1rem 2rem; border-top:1px solid #e0e0e0; display:flex; justify-content:space-between;">
+                        <span style="font-size:12px; color:#999;">This message was sent via <a href="#" style="color:#378ADD; text-decoration:none;">Landspot. </a></span>
+                        <span style="font-size:12px; color:#999;">Do not reply directly to this email</span>
+                    </div>
+
+                    </div>
+                </div>
+                `;
+            if (agent_id) {
+                await api.post("/api/nodemailer/send-mail", { subject, html, agent_id })
+                setIsSent(true);
+            }
+        } catch (error) {
+            console.log(error);
+            throw error
+        } finally {
+            setIsSending(false);
+        }
+    }
+
+    const handleAddToFavorites = async () => {
+        console.log(listing)
+        if (user && listing) {
+            setListing(prev => prev ? ({ ...prev, isFavorite: !prev.isFavorite }) : prev);
+            await handleFavoriteChange(user?.id, listing, listing?.isFavorite ? true : false);
         }
     }
 
@@ -44,9 +110,9 @@ export default function ViewListing() {
             }
         }
 
-        if (id) getListing();
+        if (id && user?.id) getListing();
         else return;
-    }, [id])
+    }, [id, user?.id])
 
     return <>
         <div className="overflow-hidden">
@@ -124,7 +190,7 @@ export default function ViewListing() {
                             LOCATION
                         </span>
                         <h4 className="font-black text-md">Full Address: {listing?.address}</h4>
-                        <div className="max-h-100 h-70 rounded-2xl overflow-hidden">
+                        <div className="max-h-100 h-70 rounded-2xl overflow-hidden z-0">
                             {
                                 listing && <MapView listings={[listing]} locationIcon="../loc.png" center={[listing.lat, listing.lng]} />
                             }
@@ -138,31 +204,40 @@ export default function ViewListing() {
                         <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient">{agent?.name[0].toLocaleUpperCase()}</h2>
                         <div className="flex flex-col">
                             <p className="font-semibold">{agent?.name}</p>
-                            <span className="text-gray-500 text-sm">{agent?.email}</span>
+                            <span className="text-gray-500 text-sm">{listing?.email}</span>
                         </div>
                     </div>
                     <textarea
                         className="w-[clamp(100% - 24px)] py-2 px-3 border border-gray-600 rounded-md resize-none"
                         placeholder="Description"
-                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                            setMessage(e.target.value);
+                            setIsSent(false);
+                        }}
                         rows={5} />
-                    <button className="btn bg-accent-400 text-white flex justify-center place-items-center gap-2">
+                    <button
+                        onClick={sendMessage}
+                        className="btn bg-accent-400 text-white flex justify-center place-items-center gap-2">
                         {
                             !isSending && !isSent ?
                                 <>
                                     <Send size={18} />
                                     <span>Send Message</span>
-                                </> : 
-                                    isSending && !isSent ? 
-                                        <div className="w-4 h-4  border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> :
-                                        <span className="text-white">Message Sent!</span>
+                                </> :
+                                isSending && !isSent ?
+                                    <div className="w-4 h-4  border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> :
+                                    <span className="text-white">Message Sent!</span>
                         }
                     </button>
                 </div>
             </div>
             <button
-                className="absolute bottom-5 right-5 p-3 rounded-xl text-white bg-accent-400 cursor-pointer hover:opacit-70 active:opacity-90">
-                <Heart size={25} />
+                onClick={handleAddToFavorites}
+                title="Put this property in your favorites."
+                className="absolute bottom-5 right-5 p-3 rounded-xl text-white bg-accent-400 shadow-lg transition cursor-pointer hover:opacity-80 active:opacity-90">
+                <Heart
+                    size={25}
+                    fill={listing?.isFavorite ? "white" : "transparent"} />
             </button>
         </div>
     </>;

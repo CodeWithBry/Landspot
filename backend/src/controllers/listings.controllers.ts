@@ -61,7 +61,7 @@ export const getListings = async (req: Request, res: Response) => {
 }
 
 export const getListingById = async (req: Request, res: Response) => {
-    const { listing_id } = req.body;
+    const { listing_id, user_id } = req.body;
     try {
         const query = `
             SELECT 
@@ -88,28 +88,137 @@ export const getListingById = async (req: Request, res: Response) => {
                         'display_order',        li.display_order
                     ) ORDER BY li.display_order
                 )
-            END AS images
+            END AS images,
+            u.email
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
+            INNER JOIN users u ON l.agent_id = u.id
             WHERE l.id = $1
-            GROUP BY l.id;
+            GROUP BY l.id, 
+            l.agent_id, 
+            l.title, 
+            l.description, 
+            l.property_type, 
+            l.price, 
+            l.bedrooms, 
+            l.bathrooms, 
+            l.address, 
+            l.lat, 
+            l.lng, 
+            l.status, 
+            l.created_at, 
+            u.email;
         `;
         const result = await pool.query(query, [listing_id]);
-        if (result.rows) {
-            sendResponse(res, result.rows);
-            return;
-        }
-
-        return;
+        const checkIfInFavorites = await pool.query(`SELECT * FROM favorites WHERE listing_id = $1 AND user_id = $2`, [result.rows[0].id, user_id])
+        const data = [{ ...result.rows[0], isFavorite: checkIfInFavorites.rows[0] ? true : false }]
+        sendResponse(res, data);
     } catch (error) {
         if (error instanceof Error) sendError(res, error.message);
     }
 }
 
-export const loadListings = async (req: Request, res: Response) => {
-    const { targetMin, targetMax } = req.body;
+export const loadListingInitially = async (req: Request, res: Response) => {
     try {
-        const result = await pool.query(`SELECT * FROM listings WHERE num_id >= $1 AND num_id <= $2;`, [targetMin, targetMax]);
+        const query = `
+            SELECT 
+                l.id,
+                l.agent_id,
+                l.agent_name,
+                l.agent_email,
+                l.title,
+                l.description,
+                l.property_type,
+                l.price,
+                l.bedrooms,
+                l.bathrooms,
+                l.address,
+                l.lat,
+                l.lng,
+                l.status,
+                l.created_at,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'id', li.id,
+                            'cloudinary_url', li.cloudinary_url,
+                            'cloudinary_public_id', li.cloudinary_public_id,
+                            'display_order', li.display_order
+                        )
+                        ORDER BY li.display_order
+                    ) FILTER (WHERE li.id IS NOT NULL),
+                    '[]'
+                ) AS images
+            FROM listings l
+            LEFT JOIN listing_images li ON li.listing_id = l.id
+            GROUP BY l.id
+            ORDER BY l.created_at DESC
+        `;
+        const result = await pool.query(query);
+        console.log(result.rows[0]?.agent_name);
+        sendResponse(res, [...result.rows]);
+    } catch (err) {
+        if (err instanceof Error) sendError(res, err.message);
+        throw err
+    }
+}
+
+export const loadListings = async (req: Request, res: Response) => {
+    try {
+        const { property_type, min_price,
+            max_price, bedrooms,
+            bathrooms, status,
+            description } = req.body;
+        console.log(description)
+        const query = `
+            SELECT 
+                l.id,
+                l.agent_id,
+                l.agent_name,
+                l.agent_email,
+                l.title,
+                l.description,
+                l.property_type,
+                l.price,
+                l.bedrooms,
+                l.bathrooms,
+                l.address,
+                l.lat,
+                l.lng,
+                l.status,
+                l.created_at,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'id', li.id,
+                            'cloudinary_url', li.cloudinary_url,
+                            'cloudinary_public_id', li.cloudinary_public_id,
+                            'display_order', li.display_order
+                        )
+                        ORDER BY li.display_order
+                    ) FILTER (WHERE li.id IS NOT NULL),
+                    '[]'
+                ) AS images
+            FROM listings l
+            LEFT JOIN listing_images li ON li.listing_id = l.id
+            WHERE
+                ($1 = 'any' OR l.property_type = $1)
+                AND ($2 = 0 OR l.price >= $2)
+                AND ($3 = 0 OR l.price <= $3)
+                AND ($4 = 0 OR l.bedrooms = $4)
+                AND ($5 = 0 OR l.bathrooms = $5)
+                AND l.status = $6
+                AND (
+                    $7::text IS NULL
+                    OR l.title ILIKE '%' || $7 || '%'
+                    OR l.description ILIKE '%' || $7 || '%'
+                )
+            GROUP BY l.id
+            ORDER BY l.created_at DESC
+        `;
+        // console.log("values:", [property_type, min_price, max_price, bedrooms, bathrooms, status, description]);
+        const result = await pool.query(query, [property_type, min_price, max_price, bedrooms, bathrooms, status, description]);
+        console.log(result.rows)
         sendResponse(res, [...result.rows]);
     } catch (err) {
         if (err instanceof Error) sendError(res, err.message);
@@ -146,7 +255,8 @@ export const getAgentListing = async (req: Request, res: Response) => {
             '[]'
             ) AS images
             FROM listings l
-            LEFT JOIN listing_images li ON li.listing_id = l.id AND l.agent_id = $1
+            LEFT JOIN listing_images li ON li.listing_id = l.id
+            WHERE l.agent_id = $1
             GROUP BY l.id
             ORDER BY l.created_at DESC
         ;`;
@@ -160,7 +270,7 @@ export const getAgentListing = async (req: Request, res: Response) => {
 }
 
 export const createNewListing = async (req: Request, res: Response) => {
-    const { title, description, property_type, price, bedrooms, bathrooms, address, lat, lng } = req.body;
+    const { title, description, property_type, price, bedrooms, bathrooms, address, lat, lng, agent_email, agent_name } = req.body;
     try {
         if (!lat) {
             sendError(res, "NO COORDINATES!")
@@ -168,11 +278,11 @@ export const createNewListing = async (req: Request, res: Response) => {
         }
 
         let query = `
-            INSERT INTO listings(agent_id, title, description, property_type, price, bedrooms, bathrooms, address, lat, lng)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            RETURNING *;
+            INSERT INTO listings(agent_id, title, description, property_type, price, bedrooms, bathrooms, address, lat, lng, agent_name, agent_email)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            RETURNING *
         `;
-        const result = await pool.query(query, [req?.user!.userId, title, description, property_type, price, bedrooms, bathrooms, address, lat, lng]);
+        const result = await pool.query(query, [req?.user!.userId, title, description, property_type, price, bedrooms, bathrooms, address, lat, lng, agent_name, agent_email]);
         sendResponse(res, result.rows[0])
     } catch (error) {
         if (error instanceof Error) sendError(res, error.message);
@@ -255,11 +365,40 @@ export const deleteFromListingImages = async (req: Request, res: Response) => {
 
 export async function searchListings(req: Request, res: Response) {
     const { params } = req.params;
-    console.log(params)
     try {
         const query = `
-            SELECT agent_id, title, description, property_type, price, bedrooms, bathrooms, address, lat, lng from listings 
-            WHERE title ILIKE $1 OR description ILIKE $1;
+            SELECT
+                l.agent_id,
+                l.title,
+                l.description,
+                l.property_type,
+                l.price,
+                l.bedrooms,
+                l.bathrooms,
+                l.address,
+                l.lat,
+                l.lng,
+
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'id', li.id,
+                            'cloudinary_url', li.cloudinary_url,
+                            'cloudinary_public_id', li.cloudinary_public_id,
+                            'display_order', li.display_order
+                        )
+                        ORDER BY li.display_order
+                    ) FILTER (WHERE li.id IS NOT NULL),
+                    '[]'
+                ) AS images
+            FROM listings AS l
+            LEFT JOIN listing_images li
+                ON li.listing_id = l.id
+            WHERE
+                l.title ILIKE $1
+                OR l.description ILIKE $1
+            GROUP BY l.id
+            ORDER BY l.created_at DESC
         `;
         const keyword = `%${params}%`
         const result = await pool.query(query, [keyword]);

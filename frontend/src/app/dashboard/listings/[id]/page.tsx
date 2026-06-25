@@ -11,7 +11,7 @@ import { register } from "module";
 import { finalizeBundlerFromConfig } from "next/dist/lib/bundler";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ChangeEvent, FormEvent, MouseEvent, useContext, useEffect, useState } from "react"
+import { ChangeEvent, DragEvent, FormEvent, MouseEvent, useContext, useEffect, useState } from "react"
 import { FormType } from "../new/page";
 const properties = [
     'house', 'condo', 'apartment', 'lot'
@@ -19,23 +19,31 @@ const properties = [
 
 function EditListing() {
     const [val, _, setDebounceValue] = useDebounce();
-    const { listings, updateListing, testAddress, getListingById } = useListing();
+    const { myListings, setMyListings, updateListing, testAddress, getListingById } = useListing();
     const { setShowMenu, showMenu } = useContext(navContext) as NavigationContextType;
     const { id } = useParams<{ id: string }>();
-    const [changesDetected, setChangesDetected] = useState<boolean>(false);
     const [isRegistring, setIsRegistring] = useState<boolean>(false);
     const [isRegistered, setIsRegistered] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [geocodeMessage, setGeocodeMessage] = useState<string>("");
-    const [listing, setListing] = useState<Listing | undefined>(listings.find(list => list.id === id));
+    const [listing, setListing] = useState<Listing | undefined>(myListings.find(list => list.id === id));
+    const [files, setFiles] = useState<{ file: File }[]>([]);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!listing) return;
         setIsSaving(true);
         try {
-            updateListing(listing);
+            const getList = await updateListing(listing, files);
+            if (getList) {
+                setMyListings(prev => prev.map((list) => {
+                    return listing.id == getList.id ? {...getList} : list
+                }));
+            }
+            console.log(getList)
+            setListing(prev => getList ? ({...getList}) : prev)
+            setFiles([]);
             setIsSaving(false);
             setIsSaved(true);
         } catch (error) {
@@ -82,6 +90,28 @@ function EditListing() {
         setDebounceValue(e.target.value);
     }
 
+    function handleSaveFile(files: FileList | null) {
+        if (!files) return;
+        let uploadedFiles: { file: File, isPreviewed: boolean }[] = [];
+        const filesLength = files.length;
+        for (let i = 0; i < filesLength; i++) {
+            const file = files[i];
+            if (file) uploadedFiles.push({ file, isPreviewed: i == 0 });
+        }
+
+
+        setFiles(prev => {
+            const filteredDuplicateFiles = uploadedFiles.filter((img) =>
+                !prev.some((i) => i.file.name == img.file.name)
+            );
+            return [...prev, ...filteredDuplicateFiles]
+        });
+    }
+
+    function removeFromFileList(idx: number) {
+        setFiles(prev => prev.filter((_, index) => index != idx))
+    }
+
     useEffect(() => {
         async function registerAddress() {
             setIsRegistring(true);
@@ -117,11 +147,11 @@ function EditListing() {
     }, [])
 
     useEffect(() => {
-        if(listing) {
+        if (listing) {
             setIsSaved(false);
             setIsSaving(false);
         }
-    } ,[listing])
+    }, [listing])
 
 
     return (
@@ -144,7 +174,6 @@ function EditListing() {
                         Cancel
                     </Link>
                     <button
-                        onClick={() => setShowMenu(prev => !prev)}
                         className='flex place-items-center gap-1 rounded-md p-3 text-sm transition cursor-pointer  bg-accent-400 text-white  hover:opacity-70 active:opacity-90'>
                         {
                             !isSaving && !isSaved ?
@@ -162,18 +191,65 @@ function EditListing() {
                     <div className="relative h-100">
                         <div
                             id="image_container"
-                            className="h-full flex rounded-md overflow-x-scroll snap-x snap-mandatory relative">
-                            {listing?.images && listing.images.map((img, idx) => {
+                            className="h-full flex rounded-md overflow-x-auto snap-x snap-mandatory relative">
+                            {listing?.images && listing.images.length > 0 ?
+                            // Saved pictures
+                                listing.images.map((img, idx) => {
+                                    return (
+                                        <img
+                                            src={img.cloudinary_url}
+                                            key={img.cloudinary_url + idx}
+                                            className="w-full h-auto object-cover block snap-center shrink-0"
+                                        />
+                                    );
+                                }) :
+                                // Upload Container
+                                <div className="w-full h-full flex justify-center items-center">
+                                    <label
+                                        onDragOver={(e: DragEvent<HTMLLabelElement>) => e.preventDefault()}
+                                        onDrop={(e: DragEvent<HTMLLabelElement>) => {
+                                            e.preventDefault();
+                                            if (!e.dataTransfer.files) return;
+                                            handleSaveFile(e.dataTransfer.files);
+                                        }}
+                                        htmlFor="fileUploader"
+                                        className="w-full h-full flex flex-col place-items-center justify-center rounded-xl border-2 border-gray-500 gap-2">
+                                        <input
+                                            id="fileUploader"
+                                            className="hidden"
+                                            type="file"
+                                            multiple
+                                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleSaveFile(e.target.files)}
+                                        />
+                                        {
+                                            files.length != 0 ?
+                                                <div className={`flex w-[98%] h-full mx-auto flex-col gap-2 my-2`}>
+                                                    {
+                                                        files.length && files.map((img, idx) => {
+                                                            return <div className="flex place-items-center rounded-md gap-2 w-full px-2 py-1.5 border-2 border-gray-600">
+                                                                <img src={URL.createObjectURL(img.file)} key={img.file.name + idx} className="w-10 h-10 object-fill" />
+                                                                <p>{img.file.name}</p>
 
-                                return (
-                                    <img
-                                        src={img.cloudinary_url}
-                                        key={img.cloudinary_url + idx}
-                                        className="w-full h-auto object-cover block snap-center shrink-0"
-                                    />
-                                );
-                            })}
+                                                                <button
+                                                                    onClick={() => removeFromFileList(idx)}
+                                                                    className="cursor-pointer w-fit h-fit px-1.5 py-px ml-auto flex justify-center place-items-center"><X size={16} /></button>
+                                                            </div>
+                                                        })
+                                                    }
+
+                                                </div> :
+                                                <div className="flex flex-col gap-2 justify-center place-items-center w-full h-full ">
+                                                    <img
+                                                        src={"../../upload.svg"}
+                                                        width={60} height={60} />
+                                                    <p>Upload Image Here</p>
+                                                </div>
+                                        }
+                                    </label>
+                                </div>
+                            }
                         </div>
+                        {/* Uploaded Files Container */}
                         <div className="absolute bottom-6 right-6 gap-2 px-2 py-2 mx-3 flex flex-nowrap max-w-[180px] h-fit">
                             {listing?.images && listing.images.map((img, idx) => {
                                 return <div
@@ -195,7 +271,7 @@ function EditListing() {
                     <label className="flex flex-col gap-2 w-full *:font-serif relative">
                         <p className="text-[10px] absolute top-[-5px] text-gray-500 left-0">Title:</p>
                         <input
-                            value={listing && listing.title}
+                            value={listing?.title ?? ""}
                             className="w-[clamp(50% - 24px)] py-2 px-3 border-0 border-b-2"
                             type="text"
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setListing(prev => prev ? ({ ...prev, title: e.target.value }) : prev)} />
@@ -224,7 +300,7 @@ function EditListing() {
                         </div>
                         <input
                             disabled={isSaving}
-                            value={listing && listing.address}
+                            value={listing?.address ?? ""}
                             type="text"
                             id="address"
                             className="w-full ml-3 outline-0"
@@ -235,7 +311,7 @@ function EditListing() {
                         <p className="text-[10px] absolute top-1.5 left-2 font-serif text-gray-500 left-0">Description:</p>
                         <textarea
                             id="description"
-                            value={listing && listing.description}
+                            value={listing?.description ?? ""}
                             className="w-full pt-5 py-2 px-3 border border-gray-600 rounded-md resize-none relative"
                             placeholder="Description"
                             onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
@@ -252,7 +328,7 @@ function EditListing() {
                                 <input
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
-                                    value={listing && listing.price}
+                                    value={listing?.price ?? ""}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setListing(prev =>
                                         prev ? ({ ...prev, price: Number(e.target.value) }) : prev)
                                     } />
@@ -266,7 +342,7 @@ function EditListing() {
                                         setListing(prev =>
                                             prev ? ({ ...prev, property_type: value }) : prev);
                                     }}
-                                    value={listing && listing.property_type}
+                                    value={listing?.property_type ?? ""}
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                 >
                                     {properties.map((prop) => (
@@ -281,7 +357,7 @@ function EditListing() {
                                 <input
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
-                                    value={listing && listing.bedrooms}
+                                    value={listing?.bedrooms ?? ""}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => setListing(prev =>
                                         prev ? ({ ...prev, bedrooms: Number(e.target.value) }) : prev)
                                     } />
@@ -291,7 +367,7 @@ function EditListing() {
                                 <input
                                     className="w-[clamp(50% - 24px)] py-2 px-3 border border-gray-600 rounded-md"
                                     type="number"
-                                    value={listing && listing.bathrooms}
+                                    value={listing?.bathrooms ?? ""}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                         setListing(prev =>
                                             prev ? ({ ...prev, bathrooms: Number(e.target.value) }) : prev)
