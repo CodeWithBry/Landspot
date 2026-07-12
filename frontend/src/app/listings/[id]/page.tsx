@@ -36,7 +36,11 @@ export default function ViewListing() {
     const sendMessage = async () => {
         setIsSending(true);
         try {
-            const agent_id = listing?.agent_id
+            const agent_email = listing?.agent_email;
+            const agent_id = listing?.agent_id;
+            const sender_email = user?.email;
+            const sender_id = user?.id;
+            const sender_name = user?.name
             const subject = "New buyer inquiry for your property!"
             const html = `
                 <div style="background:#f4f4f4; padding:2rem; font-family:Arial,sans-serif;">
@@ -76,7 +80,7 @@ export default function ViewListing() {
                 </div>
                 `;
             if (agent_id) {
-                await api.post("/api/nodemailer/send-mail", { subject, html, agent_id })
+                await api.post("/api/notifications/send-mail", { subject, html, message, agent_email, agent_id, sender_email, sender_id, sender_name });
                 setIsSent(true);
             }
         } catch (error) {
@@ -88,7 +92,6 @@ export default function ViewListing() {
     }
 
     const handleAddToFavorites = async () => {
-        console.log(listing)
         if (user && listing) {
             setListing(prev => prev ? ({ ...prev, isFavorite: !prev.isFavorite }) : prev);
             await handleFavoriteChange(user?.id, listing, listing?.isFavorite ? true : false);
@@ -105,13 +108,12 @@ export default function ViewListing() {
                     if (agentResult) setAgent(agentResult);
                 }
             } catch (error) {
-                console.log(error)
                 throw error;
             }
         }
 
         if (id && user?.id) getListing();
-        else return;
+        return;
     }, [id, user?.id])
 
     return <>
@@ -204,7 +206,7 @@ export default function ViewListing() {
                         <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient">{agent?.name[0].toLocaleUpperCase()}</h2>
                         <div className="flex flex-col">
                             <p className="font-semibold">{agent?.name}</p>
-                            <span className="text-gray-500 text-sm">{listing?.email}</span>
+                            <span className="text-gray-500 text-sm">{listing?.agent_email}</span>
                         </div>
                     </div>
                     <textarea

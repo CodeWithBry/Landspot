@@ -25,8 +25,8 @@ interface Props {
 export default function MapView({ listings, onBoundsChange, zoom, center, setCenter, locationIcon }: Props) {
   const [isUserLocated, setIsUserLocated] = useState<boolean>(false);
 
-  return <div className="w-full h-full">
-    <div className={`w-full h-full bg-gray-100 animate-pulse ${isUserLocated ? "hidden" : "flex"} absolute z-9999 items-center justify-center`}>
+  return <div className="w-full h-full relative">
+    <div className={`w-full h-full bg-gray-100 ${isUserLocated || center ? "hidden" : "flex"} absolute z-9999 items-center justify-center`}>
       <span className="text-sm text-gray-400">Loading map...</span>
     </div>
     <LeafletMap

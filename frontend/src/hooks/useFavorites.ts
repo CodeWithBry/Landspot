@@ -42,7 +42,6 @@ export function useFavorites() {
 
   const handleFavoriteChange = async (user_id: string, listing: Listing, isFavorite: boolean | undefined) => {
     const url = isFavorite ? "/api/favorites/remove" : "/api/favorites/add";
-    console.log(url)
     try {
       await api.post(url, { user_id, listing });
     } catch (error) {

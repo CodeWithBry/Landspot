@@ -111,7 +111,7 @@ export const getListingById = async (req: Request, res: Response) => {
         `;
         const result = await pool.query(query, [listing_id]);
         const checkIfInFavorites = await pool.query(`SELECT * FROM favorites WHERE listing_id = $1 AND user_id = $2`, [result.rows[0].id, user_id])
-        const data = [{ ...result.rows[0], isFavorite: checkIfInFavorites.rows[0] ? true : false }]
+        const data = [{ ...result.rows[0], agent_email: result.rows[0].email, isFavorite: checkIfInFavorites.rows[0] ? true : false }]
         sendResponse(res, data);
     } catch (error) {
         if (error instanceof Error) sendError(res, error.message);

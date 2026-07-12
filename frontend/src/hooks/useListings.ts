@@ -3,7 +3,6 @@ import { Listing, ListingForm } from "@/types/ListingType";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 import { defineError } from "@/utils/defineError";
-import { responseCookiesToRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import { FilterOptions } from "@/types/FilterOptionsType";
 
 export type UseListingType = {

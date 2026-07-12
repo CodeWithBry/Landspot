@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { requireRole } from "../middleware/roleGuard";
 import { addFavorite, getFavorites, removeFavorite } from "../controllers/favorites.controller";
 
 const router = Router();

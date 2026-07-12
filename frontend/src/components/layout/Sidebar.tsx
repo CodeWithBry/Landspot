@@ -22,7 +22,7 @@ export function Sidebar() {
         { tabName: "Listings", tabPath: "/listings", icon: List },
         { tabName: "Favorites", tabPath: "/favorites", icon: Heart },
         { tabName: "Dashboard", tabPath: "/dashboard", icon: LayoutDashboard },
-        { tabName: "Agents", tabPath: "/agents", icon: Users },
+        // { tabName: "Agents", tabPath: "/agents", icon: Users },
         { tabName: "Notifications", tabPath: "/notifications", icon: Bell },
     ];
     const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
@@ -31,7 +31,7 @@ export function Sidebar() {
         <div
             className={`${showMenu ? "md:w-fit w-full absolute" : !isAuthPath ? "w-fit md:relative md:flex hidden" : "relative w-0"} md:relative  h-full bg-semi-transparent z-1 flex`}>
             <div className={`${showMenu ? "w-60 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2 md:left-0 right-full" : "opacity-0 z-0 w-0 border-r-0"} h-full md:relative overflow z-1 flex flex-col justify-between border-r-gray-400 bg-white`}>
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-5 h-full">
                     <h3 className={`flex text-xl font-serif font-bold mt-5 place-items-center  justify-between ${showMenu ? "text-primary-300" : "bg-primary-300 text-white justify-center place-items-center rounded-md"}`}>
                         {showMenu ? "Landspot" : "L"}
                         <button
@@ -42,32 +42,35 @@ export function Sidebar() {
                             }
                         </button>
                     </h3>
-                    <ul className="flex flex-col h-full items-left gap-2">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = tab.tabPath === path;
-                            const element = <li key={tab.tabName}>
-                                <Link href={tab.tabPath} className={`flex gap-1 w-full rounded-md px-2 py-2 place-items-center md:text-m cursor-pointer text-md hover:text-accent-500 font-body relative transition-all ${isActive ? "text-white bg-accent-400 hover:text-white hover:opacity-75" : "text-black"}`}>
-                                    <Icon size={15} />
-                                    {showMenu ? tab.tabName : ""}
-                                </Link>
-                            </li>
+                    <div className="overflow-x-hidden overflow-y-auto h-full mb-2 w-full relative">
+                        <div className="flex flex-col h-full absolute w-full">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = tab.tabPath === path;
+                                const element = <li key={tab.tabName}>
+                                    <Link href={tab.tabPath} className={`flex gap-1 w-full rounded-md px-2 py-2 place-items-center md:text-m cursor-pointer text-md hover:text-accent-500 font-body transition-all ${isActive ? "text-white bg-accent-400 hover:text-white hover:opacity-75" : "text-black"}`}>
+                                        <Icon size={15} />
+                                        {showMenu ? tab.tabName : ""}
+                                    </Link>
+                                </li>
 
-                            if ((user?.role == "agent" && tab.tabName == "Favorites")) return null;
-                            else if ((user?.role == "buyer" && tab.tabName == "Dashboard")) return null;
-                            else return element;
-                        })}
-                    </ul>
+                                if ((user?.role == "agent" && tab.tabName == "Favorites")) return null;
+                                else if ((user?.role == "buyer" && tab.tabName == "Dashboard")) return null;
+                                else return element;
+                            })}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex flex-col mb-5 gap-2">
+                <div className="flex flex-col mb-5 gap-2 relative">
                     {
                         user?.id ?
                             <div className={`relative flex justify-center place-items-center`}>
                                 <div className={`${showMenu && showUserMenu ? "block translate-x-[-50%] left-[50%] bottom-full mb-1 w-full" : !showMenu && showUserMenu ? "w-fit left-full bottom-[-7.5px] ml-4" : "hidden"} absolute bg-white  border-2 cursor-pointer  border-accent-400 rounded-md`}>
                                     <Link
                                         href={"/settings"}
-                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-sm hover:opacity-70 hover:bg-gray-200`}>
+                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-sm hover:opacity-70 hover:bg-gray-200`}
+                                        onClick={() => setShowUserMenu(prev => !prev)}>
                                         <User
                                             size={showMenu ? 18 : 15}
                                             className="shrink-0 rounded-md shadow-md" />
@@ -75,15 +78,17 @@ export function Sidebar() {
                                     </Link>
                                     <Link
                                         href={"/notifications"}
-                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-sm hover:opacity-70 hover:bg-gray-200`}>
+                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-sm hover:opacity-70 hover:bg-gray-200`}
+                                        onClick={() => setShowUserMenu(prev => !prev)}>
                                         <Bell
                                             size={showMenu ? 18 : 15}
                                             className="shrink-0 rounded-md shadow-md" />
                                         <p className={`font-semibold font-serif`}>Settings</p>
                                     </Link>
                                     <button
-                                        onClick={logout}
-                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-red-600 text-sm hover:opacity-70 hover:bg-gray-200`}>
+                                        onClick={() => { logout(), setShowUserMenu(prev => !prev) }}
+                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-red-600 text-sm hover:opacity-70 hover:bg-gray-200`}
+                                    >
                                         <LogOut
                                             size={showMenu ? 18 : 15}
                                             className="shrink-0 rounded-md shadow-md" />
@@ -119,7 +124,7 @@ export function Sidebar() {
 
                 </div>
             </div>
-            <div className={`md:hidden w-full h-full`} onClick={() => setShowMenu(false)}/>
+            <div className={`md:hidden w-full h-full`} onClick={() => setShowMenu(false)} />
         </div>
     )
 
