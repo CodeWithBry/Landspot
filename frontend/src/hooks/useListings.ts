@@ -1,14 +1,19 @@
 import { api } from "@/lib/api";
 import { Listing, ListingForm } from "@/types/ListingType";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "./useAuth";
 import { defineError } from "@/utils/defineError";
 import { FilterOptions } from "@/types/FilterOptionsType";
+import { User } from "@/types/AuthContextType";
+import { LatLngBounds } from "leaflet";
+import { abort } from "process";
+import axios from "axios";
 
 export type UseListingType = {
   listings: Listing[], myListings: Listing[],
   setListings: Dispatch<SetStateAction<Listing[]>>,
   setMyListings: Dispatch<SetStateAction<Listing[]>>,
+  isMyListingLoading: boolean, setIsMyListingLoading: Dispatch<SetStateAction<boolean>>,
   loadingListings: boolean,
   error?: Error | string,
   addNewListing: (form: ListingForm) => Promise<Listing | undefined>,
@@ -17,14 +22,16 @@ export type UseListingType = {
   loadListing: (filterOptions: FilterOptions) => Promise<Listing[] | undefined>
   searchListing: (val: string) => Promise<Listing[] | undefined>
   getListingById: (listing_id: string) => Promise<Listing | undefined>,
-  uploadToCloudinary: () => void,
   deleteFromListing: (id: string, user_id: string) => void,
-  updateListing: (listing: Listing, fileData: { file: File }[]) => Promise<undefined | Listing>
+  updateListing: (listing: Listing, fileData: { file: File }[]) => Promise<undefined | Listing>,
+  onBoundsChange: (bounds: LatLngBounds) => void;
 }
 
 export function useListing(): UseListingType {
   const { user, isDataLoaded } = useAuth();
+  const abortController = useRef<AbortController | null>(null);
   const [loadingListings, setLoadingListings] = useState<boolean>(false);
+  const [isMyListingLoading, setIsMyListingLoading] = useState<boolean>(false);
   const [listings, setListings] = useState<Listing[]>([]);
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [error, setError] = useState<Error | string>();
@@ -70,6 +77,18 @@ export function useListing(): UseListingType {
     }
   };
 
+  const loadMyListings = async (user: User) => {
+    setIsMyListingLoading(true);
+    try {
+      const { data } = (await api.post('/api/listings/my-listing', { user })).data;
+      setMyListings(data);
+    } catch (error) {
+      throw (error);
+    } finally {
+      setIsMyListingLoading(false);
+    }
+  }
+
   const getListingById = async (listing_id: string): Promise<Listing | undefined> => {
     try {
       const result = await api.post("/api/listings/get-listing-by-id", { listing_id, user_id: user?.id });
@@ -97,7 +116,7 @@ export function useListing(): UseListingType {
     try {
       await api.post(`/api/listings/update-listing`, { listing });
       setListings(prev => prev?.map((list) => list.id == listing.id ? ({ ...listing }) : list));
-      if (fileData.length >= 0 && user?.name) {
+      if (fileData.length > 0 && user?.name) {
         const formData = new FormData();
         fileData.forEach((file) => formData.append("images", file.file));
         formData.append("listing_id", listing.id)
@@ -106,16 +125,12 @@ export function useListing(): UseListingType {
         });
         const { data } = (await api.post('/api/listings/get-listing-by-id', { listing_id: listing.id, user_id: user.id })).data;
         return data[0] as Listing
-      } 
+      }
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
-
-  const uploadToCloudinary = async () => {
-
-  };
 
   const deleteFromListing = async (id: string, user_id: string) => {
     try {
@@ -134,37 +149,46 @@ export function useListing(): UseListingType {
     }
   }
 
+  const onBoundsChange = useCallback(async (bounds: LatLngBounds) => {
+    abortController.current?.abort();
+    const controller = new AbortController();
+    abortController.current = controller;
+    const padded = bounds.pad(2);
+    try {
+      const result = await api.post("/api/listings/get-listings-onbound", {
+        north: padded.getNorth(),
+        south: padded.getSouth(),
+        east: padded.getEast(),
+        west: padded.getWest(),
+      }, {
+        signal: controller.signal,
+      });
+      const { data } = result.data;
+      setListings(data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return;
+      } 
+      console.log(error)
+    }
+  }, [])
+
   useEffect(() => {
     if (!isDataLoaded) return;
     setLoadingListings(true);
-    api.post('/api/listings/get-listings', { targetMin: 1, targetMax: 10 })
-      .then(res => {
-        setListings([...res.data.data])
-      })
-      .catch(err => { console.log(err) })
-      .finally(() => {
-        if (user?.name) api.post('/api/listings/my-listing', { user })
-          .then(result => {
-            setMyListings(result.data.data)
-          })
-          .catch(err => {
-            console.log(err)
-            throw err
-          })
-          .finally(() => setLoadingListings(false));
-        setLoadingListings(false)
-      });
+    if (user?.name) loadMyListings(user)
   }, [isDataLoaded, user?.id])
 
 
   return {
     listings, myListings,
+    isMyListingLoading, setIsMyListingLoading,
     setListings, setMyListings,
     getListingById, loadingListings,
     error, addNewListing,
     testAddress, loadListingInitially,
-    searchListing,
-    loadListing, uploadToCloudinary,
-    deleteFromListing, updateListing
+    searchListing, loadListing,
+    deleteFromListing, updateListing,
+    onBoundsChange
   };
 }

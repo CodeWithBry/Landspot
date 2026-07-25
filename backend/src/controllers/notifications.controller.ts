@@ -1,19 +1,22 @@
 import { Response, Request } from "express";
 import { sendResponse, sendError } from "../utils/response";
-import transporter from "../middleware/nodemailer";
 import { pool } from "../db";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 export async function sendMail(req: Request, res: Response) {
     const { html, subject, message, agent_email, agent_id, sender_email, sender_id, sender_name } = req.body;
     try {
         await pool.query(`
                 INSERT INTO notifications (title, message_description, sender_email, sender_id, sender_name, user_id, html)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)w
             `, [subject, message, sender_email, sender_id, sender_name, agent_id, html]);
-        const info = await transporter.sendMail({
-            from: sender_email,
+        const info = await resend.emails.send({
+            from: "onboarding@resend.dev",
             to: agent_email,
             subject,
-            html,
+            html
         });
         sendResponse(res, info);
     } catch (error) {

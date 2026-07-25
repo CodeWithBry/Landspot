@@ -3,9 +3,10 @@
 import { navContext } from "@/context/NavigationProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { NavigationContextType } from "@/types/NavigationContextType";
-import { Bell, Heart, LayoutDashboard, LogIn, LogOut, LucideIcon, Map, User2, X, Menu, User, List, Users } from "lucide-react";
-import { useContext, useState } from "react";
+import { Bell, Heart, LayoutDashboard, LogIn, LogOut, LucideIcon, Map, User2, X, Menu, User, List, Users, Settings } from "lucide-react";
+import { useContext, useRef, useState } from "react";
 import Link from "next/link";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 type Tab = {
     tabName: string,
@@ -15,6 +16,7 @@ type Tab = {
 
 export function Sidebar() {
     const { user, logout } = useAuth();
+    const userMenuRef = useRef<HTMLDivElement | null>(null);
     const { showMenu, setShowMenu, path } = useContext(navContext) as NavigationContextType;
     const isAuthPath = path === "/login" || path === "/signup";
     const tabs: Tab[] = [
@@ -27,6 +29,7 @@ export function Sidebar() {
     ];
     const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
 
+    useClickOutside(userMenuRef, () => showUserMenu ? setShowUserMenu(false) : null )
     return (
         <div
             className={`${showMenu ? "md:w-fit w-full absolute" : !isAuthPath ? "w-fit md:relative md:flex hidden" : "relative w-0"} md:relative  h-full bg-semi-transparent z-1 flex`}>
@@ -65,33 +68,36 @@ export function Sidebar() {
                 <div className="flex flex-col mb-5 gap-2 relative">
                     {
                         user?.id ?
-                            <div className={`relative flex justify-center place-items-center`}>
-                                <div className={`${showMenu && showUserMenu ? "block translate-x-[-50%] left-[50%] bottom-full mb-1 w-full" : !showMenu && showUserMenu ? "w-fit left-full bottom-[-7.5px] ml-4" : "hidden"} absolute bg-white  border-2 cursor-pointer  border-accent-400 rounded-md`}>
+                            <div
+                                className={`relative flex justify-center place-items-center`} >
+                                <div
+                                    className={`${showMenu && showUserMenu ? "block translate-x-[-50%] left-[50%] bottom-full mb-1 w-full" : !showMenu && showUserMenu ? "w-fit left-full bottom-[-7.5px] ml-4" : "hidden"} absolute bg-white cursor-pointer p-px shadow-md rounded-md`}
+                                    ref={userMenuRef}>
                                     <Link
                                         href={"/settings"}
-                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-sm hover:opacity-70 hover:bg-gray-200`}
+                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 text-sm hover:opacity-70 hover:bg-gray-300`}
                                         onClick={() => setShowUserMenu(prev => !prev)}>
                                         <User
                                             size={showMenu ? 18 : 15}
-                                            className="shrink-0 rounded-md shadow-md" />
+                                            className="shrink-0 rounded-md" />
                                         <p className={`font-semibold font-serif`}>Profile</p>
                                     </Link>
                                     <Link
-                                        href={"/notifications"}
-                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-sm hover:opacity-70 hover:bg-gray-200`}
+                                        href={"/settings"}
+                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 text-sm hover:opacity-70 hover:bg-gray-300`}
                                         onClick={() => setShowUserMenu(prev => !prev)}>
-                                        <Bell
+                                        <Settings
                                             size={showMenu ? 18 : 15}
-                                            className="shrink-0 rounded-md shadow-md" />
+                                            className="shrink-0 rounded-md" />
                                         <p className={`font-semibold font-serif`}>Settings</p>
                                     </Link>
                                     <button
                                         onClick={() => { logout(), setShowUserMenu(prev => !prev) }}
-                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 place-items-center text-red-600 text-sm hover:opacity-70 hover:bg-gray-200`}
+                                        className={`min-w-32.5 py-2 w-full shrink-0 btn flex gap-2 text-red-600 text-sm hover:opacity-70 hover:bg-gray-300`}
                                     >
                                         <LogOut
                                             size={showMenu ? 18 : 15}
-                                            className="shrink-0 rounded-md shadow-md" />
+                                            className="shrink-0 rounded-md" />
                                         <p className={`font-semibold font-serif`}>Log out</p>
                                     </button>
                                 </div>
@@ -107,12 +113,14 @@ export function Sidebar() {
                             :
                             <>
                                 <Link
+                                    onClick={() => setShowMenu(false)}
                                     href={"/signup"}
                                     className="flex gap-1 w-full px-2 py-2 place-items-center justify-center md:text-m cursor-pointer text-md hover:opacity-75 active:opacity-90 relative transition-all bg-gray-400 text-white font-serif rounded-md">
                                     <LogIn size={16} className="shrink-0" />
                                     {showMenu ? "Signup" : ""}
                                 </Link>
                                 <Link
+                                    onClick={() => setShowMenu(false)}
                                     href={"/login"}
                                     className="flex gap-1 w-full px-2 py-2 place-items-center justify-center md:text-m cursor-pointer text-md hover:opacity-75 active:opacity-90 relative transition-all bg-accent-400 text-white font-serif rounded-md">
                                     <User2 size={16} className="shrink-0" />

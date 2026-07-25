@@ -16,7 +16,7 @@ function Map() {
   const listingId = searchParams.get("id")
   const [val, debounceVal, setDebounceVal] = useDebounce();
   const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
-  const { listings, getListingById } = useListing();
+  const { listings, getListingById, onBoundsChange } = useListing();
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const wrapper = useRef<HTMLDivElement | null>(null);
@@ -147,7 +147,7 @@ function Map() {
           }
         </div>
       </div>
-      <MapView listings={listings} center={center} zoom={zoom} setCenter={setCenter} />
+      <MapView listings={listings} onBoundsChange={onBoundsChange} center={center} zoom={zoom} setCenter={setCenter} />
     </div>
   )
 }

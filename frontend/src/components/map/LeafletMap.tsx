@@ -5,13 +5,15 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { ListingMarker } from "./ListingMarker";
 import LocateUser from "./LocateUser";
 import FlyToCenter from "./FlyToCenter";
+import { LatLngBounds } from "leaflet";
+import OnBoundsChange from "./OnBoundsChange";
 
 interface Props {
     listings: Listing[]
     center?: [number, number]
     zoom?: number,
     setCenter?: Dispatch<SetStateAction<[number, number] | null>>
-    onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
+    onBoundsChange: (bounds: LatLngBounds) => void
     setIsUserLocated: Dispatch<SetStateAction<boolean>>
 }
 
@@ -35,6 +37,7 @@ function LeafletMap({
             attribution=''
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <OnBoundsChange onBoundsChange={onBoundsChange}></OnBoundsChange>
         {children}
         {listings?.map(listing => (
             <ListingMarker key={listing.id} listing={listing} locationIcon={locationIcon} />

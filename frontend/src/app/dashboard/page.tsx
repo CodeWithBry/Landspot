@@ -1,15 +1,16 @@
 "use client"
 
 import MyListingCard from "@/components/listings/MyListingCard";
+import ListingSkeleton from "@/components/skeleton/ListingSkeleton";
 import { navContext } from "@/context/NavigationProvider";
 import { useListing } from "@/hooks/useListings"
 import { NavigationContextType } from "@/types/NavigationContextType";
-import { Menu, X } from "lucide-react";
+import { List, Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 
 export default function Dashboard() {
-    const { myListings, deleteFromListing } = useListing();
+    const { myListings, deleteFromListing, isMyListingLoading } = useListing();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
 
     return <>
@@ -21,7 +22,7 @@ export default function Dashboard() {
                             onClick={() => setShowMenu(prev => !prev)}
                             className='p-3 rounded-full transition cursor-pointer  hover:bg-accent-400 hover:text-white'>
                             {
-                                !showMenu  ? <Menu size={18} /> : <X size={18}/> 
+                                !showMenu ? <Menu size={18} /> : <X size={18} />
                             }
                         </button>
                         <span>Dashboard Listings</span>
@@ -30,7 +31,18 @@ export default function Dashboard() {
                 </header>
 
                 <div className="w-[90%] px-2 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
-                    {myListings?.map((listing) => <MyListingCard key={listing.id} listing={listing} deleteFromListing={deleteFromListing} />)}
+                    {
+                        isMyListingLoading ?
+                            Array.from({ length: 5 }).map((_) => <ListingSkeleton />) :
+                            myListings.length != 0 ?
+                                myListings?.map((listing) => <MyListingCard key={listing.id} listing={listing} deleteFromListing={deleteFromListing} />) :
+                                <div className="h-full flex flex-col place-items-center gap-2 font-serif">
+                                    <div className="h-full justify-center flex flex-col place-items-center gap-2 font-serif text-gray-500">
+                                        <List size={38} />
+                                        <h1>There are no favorites listed above.</h1>
+                                    </div>
+                                </div>
+                    }
                 </div>
             </div>
         </section>

@@ -118,6 +118,37 @@ export const getListingById = async (req: Request, res: Response) => {
     }
 }
 
+export const getListingsOnBound = async (req: Request, res: Response) => {
+    const { west, east, north, south } = req.body;
+    const query = `
+        SELECT l.id,
+            l.agent_id,
+            l.title,
+            l.description,
+            l.property_type,
+            l.price,
+            l.bedrooms,
+            l.bathrooms,
+            l.address,
+            l.lat,
+            l.lng,
+            l.status,
+            l.created_at FROM listings as l
+            WHERE l.lat BETWEEN $1 AND $2
+            AND l.lng BETWEEN $3 AND $4
+    `
+    try {
+        const response = await pool.query(query, [south, north, west, east]);
+        if(response.rows.length > 0) {
+            sendResponse(res, response.rows);
+            return;
+        }
+    } catch (error) {
+        console.log(error)
+        sendError(res, "Error fetching listings");
+    }
+};
+
 export const loadListingInitially = async (req: Request, res: Response) => {
     try {
         const query = `
@@ -305,7 +336,7 @@ export const deleteListing = async (req: Request, res: Response) => {
     }
 }
 
-export const udpateListing = async (req: Request, res: Response) => {
+export const updateListing = async (req: Request, res: Response) => {
     const { listing } = req.body;
     const {
         title,

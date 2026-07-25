@@ -22,7 +22,7 @@ export type FormType = {
 };
 
 function AddListing() {
-    const { addNewListing, testAddress, uploadToCloudinary } = useListing();
+    const { addNewListing, testAddress } = useListing();
     const { user } = useAuth();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
     const router = useRouter();

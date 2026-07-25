@@ -7,10 +7,8 @@ import { api } from "@/lib/api";
 import { Listing, ListingForm, ListingImage } from "@/types/ListingType";
 import { NavigationContextType } from "@/types/NavigationContextType";
 import { X, Menu, Save, Locate, Check, Images } from "lucide-react";
-import { register } from "module";
-import { finalizeBundlerFromConfig } from "next/dist/lib/bundler";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ChangeEvent, DragEvent, FormEvent, MouseEvent, useContext, useEffect, useState } from "react"
 import { FormType } from "../new/page";
 const properties = [
@@ -19,6 +17,7 @@ const properties = [
 
 function EditListing() {
     const [val, _, setDebounceValue] = useDebounce();
+    const navigation = useRouter()
     const { myListings, setMyListings, updateListing, testAddress, getListingById } = useListing();
     const { setShowMenu, showMenu } = useContext(navContext) as NavigationContextType;
     const { id } = useParams<{ id: string }>();
@@ -51,6 +50,7 @@ function EditListing() {
             throw error;
         } finally {
             setIsSaving(false);
+            navigation.push("/dashboard")
         }
     }
 
@@ -120,6 +120,7 @@ function EditListing() {
                 if (res?.lat) {
                     setIsRegistered(true);
                     setIsRegistring(false);
+                    setListing(prev => prev ? ({...prev, lat: res.lat, lng: res.lng}) : undefined);
                 }
             } catch (error) {
                 console.log(error);

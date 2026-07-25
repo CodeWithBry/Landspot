@@ -14,7 +14,7 @@ type Agent = { email: string, name: string };
 
 export default function ViewListing() {
     const { user } = useAuth();
-    const { getListingById } = useListing();
+    const { getListingById, onBoundsChange } = useListing();
     const { id } = useParams<{ id: string }>();
     const { handleFavoriteChange } = useFavorites();
     const [isSending, setIsSending] = useState<boolean>(false);
@@ -194,7 +194,7 @@ export default function ViewListing() {
                         <h4 className="font-black text-md">Full Address: {listing?.address}</h4>
                         <div className="max-h-100 h-70 rounded-2xl overflow-hidden z-0">
                             {
-                                listing && <MapView listings={[listing]} locationIcon="../loc.png" center={[listing.lat, listing.lng]} />
+                                listing && <MapView listings={[listing]} onBoundsChange={onBoundsChange} locationIcon="../loc.png" center={[listing.lat, listing.lng]} />
                             }
                         </div>
                     </div>

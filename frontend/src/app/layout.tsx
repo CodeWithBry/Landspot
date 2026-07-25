@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} w-full h-full`}>
+      className={`${inter.variable} w-full h-full font-serif`}>
       <body className="w-full h-full">
         <AuthProvider>
           <div className="w-full h-full flex md:grid md:grid-cols-[auto_1fr]">

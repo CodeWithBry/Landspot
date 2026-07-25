@@ -33,7 +33,7 @@ function Notifications() {
         const notifs: NotificationsType[] = [...notifications];
         let groupedNotifs: SortedNotificationsType[] = [...sortedNotifications];
         console.log(notifs)
-        notifs.forEach((notif, i) => {
+        notifs.forEach((notif) => {
             const label = getRelativeTime(notif);
             if (groupedNotifs.length == 0) {
                 groupedNotifs = [{ label, notifications: [notif] }];

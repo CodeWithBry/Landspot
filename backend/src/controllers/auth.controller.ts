@@ -12,9 +12,12 @@ export const register = async (req: Request, res: Response) => {
         if (ifUserAlreadyExists.rows.length == 0) {
             const createHashPassword = await bcrypt.hash(password, 12);
             await pool.query(`INSERT INTO users(name, email, password_hash, role) VALUES ($1, $2, $3, $4)`, [name, email, createHashPassword, role]);
-            sendResponse(res, { mess: "Successfully Created an Account!" });
+            return sendResponse(res, { mess: "Successfully Created an Account!" });
         }
+
+        return sendResponse(res, {mess: "Email is already used!"});
     } catch (error) {
+        sendError(res, "Error occurred")
         throw error;
     }
 }

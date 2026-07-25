@@ -1,6 +1,6 @@
 'use client'
 import { api } from "@/lib/api";
-import { AuthContextType, LoginType, LogoutType, SignupType, User } from "@/types/AuthContextType";
+import { AuthContextType, LoginType, SignupType, User } from "@/types/AuthContextType";
 import { useRouter } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 
@@ -9,6 +9,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [loadingAuthentication, setLoadingAuthentication] = useState<boolean>(false);
+    const [failedToAuthenticate, setFailedToAuthenticate] = useState<boolean>(false);
     const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false);
 
 
@@ -24,20 +25,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("token");
     }
 
-    const signup: SignupType = async (email: string, name: string, password: string, role: "buyer" | "agent") => {
+    const signup: SignupType = async (email: string, name: string, password: string, role: "buyer" | "agent"): Promise<string | undefined> => {
         setLoadingAuthentication(true);
         try {
             // if (password != confirmPassword) return setLoadingAuthentication(false);
-            console.log({ email, name, password, role })
             const result = await api.post('/api/auth/register', { email, name, password, role });
             setToken(result.data.token);
             setLoadingAuthentication(false);
+            return result.data.data.mess;
         } catch (error) {
             setLoadingAuthentication(false);
             throw error;
-        } finally {
-            router.push('/login');
-        }
+        } 
     }
 
     const login: LoginType = async (email: string, password: string) => {
@@ -48,8 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(data.data.user);
             router.push('/');
         } catch (error) {
-            console.log(error)
+            setFailedToAuthenticate(true);
             throw error;
+        } finally {
+            setLoadingAuthentication(false);
         }
     }
 
@@ -80,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsDataLoaded(true)
     }, [])
 
-    return <AuthContext.Provider value={{ user, isDataLoaded, signup, login, logout }}>
+    return <AuthContext.Provider value={{ loadingAuthentication, failedToAuthenticate, setFailedToAuthenticate, user, isDataLoaded, signup, login, logout }}>
         {children}
     </AuthContext.Provider>
 }

@@ -7,7 +7,7 @@ import { useListing } from "@/hooks/useListings";
 import { FilterBoxProps, type FilterOptions } from "@/types/FilterOptionsType";
 import { type Listing } from "@/types/ListingType";
 import { NavigationContextType } from "@/types/NavigationContextType";
-import { Filter, Menu, Search, X } from "lucide-react";
+import { Filter, List, Menu, Search, X } from "lucide-react";
 import { ChangeEvent, useContext, useEffect, useState } from "react";
 
 function Listings() {
@@ -43,6 +43,7 @@ function Listings() {
             setListingResult(null);
             setNoResult(true);
         } catch (error) {
+            setNoResult(true);
             throw error;
         }
     }
@@ -55,9 +56,14 @@ function Listings() {
         async function loadListing() {
             try {
                 const res = await loadListingInitially();
-                if (res) setListingResult([...res]);
+                if (res) {
+                    setListingResult([...res]);
+                    return;
+                }
+                setNoResult(true);
                 setIsFetching(false);
             } catch (error) {
+                setNoResult(true);
                 throw error;
             } finally {
                 setIsFetching(false);
@@ -84,8 +90,8 @@ function Listings() {
                         </button>
                         <span>Listings</span>
                     </h2>
-                    <label 
-                        htmlFor="search-input" 
+                    <label
+                        htmlFor="search-input"
                         className="flex items-center gap-2 w-60 ml-auto px-3 py-1.5 border-2 rounded-md border-gray-400" >
                         <Search size={16} />
                         <input
@@ -113,11 +119,14 @@ function Listings() {
                 <div className="w-[90%] py-2 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] px-2 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
                     {
                         isFetching ?
-                            Array.from({ length: 5 }).map((_, idx) => <ListingSkeleton key={idx}/>) :
-                            noResult && !listingResult ?
-                                <p className="text-md text-gray-700 font-serif">
-                                    No existing result.
-                                </p> :
+                            Array.from({ length: 5 }).map((_, idx) => <ListingSkeleton key={idx} />) :
+                            (noResult && !listingResult) ?
+                                <div className="h-full flex flex-col place-items-center gap-2 font-serif">
+                                    <div className="h-full justify-center flex flex-col place-items-center gap-2 font-serif text-gray-500">
+                                        <List size={38} />
+                                        <h1>There are no favorites listed above.</h1>
+                                    </div>
+                                </div> :
                                 listingResult?.map((listing) => <ListingCard key={listing.id} listing={listing} setListingResult={setListingResult} />)
                     }
                 </div>

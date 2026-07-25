@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Listing } from '@/types/ListingType'
 import { Dispatch, SetStateAction, useState } from 'react'
+import { LatLngBounds } from 'leaflet'
 
 const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ssr: false,
@@ -17,7 +18,7 @@ interface Props {
   listings: Listing[]
   center?: [number, number] | null,
   zoom?: number | null
-  onBoundsChange?: (bbox: { north: number; south: number; east: number; west: number }) => void
+  onBoundsChange: (bounds: LatLngBounds) => void
   setCenter?: Dispatch<SetStateAction<[number, number] | null>>,
   locationIcon?: string
 }
