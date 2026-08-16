@@ -275,15 +275,15 @@ export const getAgentListing = async (req: Request, res: Response) => {
             l.status,
             l.created_at,
             COALESCE(
-            json_agg(
-                json_build_object(
-                'id',                   li.id,
-                'cloudinary_url',       li.cloudinary_url,
-                'cloudinary_public_id', li.cloudinary_public_id,
-                'display_order',        li.display_order
-                ) ORDER BY li.display_order
-            ) FILTER (WHERE li.id IS NOT NULL),
-            '[]'
+                json_agg(
+                    json_build_object(
+                    'id',                   li.id,
+                    'cloudinary_url',       li.cloudinary_url,
+                    'cloudinary_public_id', li.cloudinary_public_id,
+                    'display_order',        li.display_order
+                    ) ORDER BY li.display_order
+                ) FILTER (WHERE li.id IS NOT NULL),
+                '[]'
             ) AS images
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id

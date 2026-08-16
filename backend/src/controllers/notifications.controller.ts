@@ -10,7 +10,7 @@ export async function sendMail(req: Request, res: Response) {
     try {
         await pool.query(`
                 INSERT INTO notifications (title, message_description, sender_email, sender_id, sender_name, user_id, html)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)w
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
             `, [subject, message, sender_email, sender_id, sender_name, agent_id, html]);
         const info = await resend.emails.send({
             from: "onboarding@resend.dev",
@@ -42,10 +42,10 @@ export const getNotifications = async (req: Request, res: Response) => {
 
 export const getNotificationById = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { user_id } = req.params;
         const query = `SELECT * FROM notifications WHERE id = $1`;
-        const result = await pool.query(query, [id]);
-        if(result.rows.length != 0) {
+        const result = await pool.query(query, [user_id]);
+        if (result.rows.length != 0) {
             sendResponse(res, result.rows[0]);
             return;
         }
@@ -55,3 +55,31 @@ export const getNotificationById = async (req: Request, res: Response) => {
         throw error;
     }
 };
+
+export const getUnseenNotificationsLength = async (req: Request, res: Response) => {
+    try {
+        const { user_id } = req.params;
+        const query = `
+            SELECT 
+                id
+                user_id
+                title
+                message_description
+                html
+                sent_at
+                sender_id
+                sender_email
+                sender_name
+                is_important
+                is_seen
+            FROM notifications
+            WHERE id = $1
+            AND is_seen = $2
+        `;
+        const result = await pool.query(query, [user_id, false]);
+        console.log(result.rows[0]);
+    } catch (error) {
+        if (error instanceof Error) sendError(res, error.message);
+        throw error;
+    }
+}

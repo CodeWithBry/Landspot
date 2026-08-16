@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUser, login, register } from "../controllers/auth.controller";
+import { getProfile, getUser, login, register, updateProfile } from "../controllers/auth.controller";
 import { requireAuth } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -7,8 +7,7 @@ const router = Router();
 router.post('/register', register);
 router.post('/login', login);
 router.get('/get-user', requireAuth, getUser);
-router.get('/test', async (req, res) => {
-    res.send("TESTING")
-})
+router.get('/get-profile', requireAuth, getProfile);
+router.post('/update-profile', requireAuth, updateProfile);
 
 export default router;
