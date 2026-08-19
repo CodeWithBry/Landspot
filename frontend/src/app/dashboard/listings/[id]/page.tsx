@@ -18,7 +18,7 @@ const properties = [
 function EditListing() {
     const [val, _, setDebounceValue] = useDebounce();
     const navigation = useRouter()
-    const { myListings, setMyListings, updateListing, testAddress, getListingById } = useListing();
+    const {updateListing, testAddress, getListingById } = useListing();
     const { setShowMenu, showMenu } = useContext(navContext) as NavigationContextType;
     const { id } = useParams<{ id: string }>();
     const [isRegistring, setIsRegistring] = useState<boolean>(false);
@@ -26,7 +26,7 @@ function EditListing() {
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [isSaved, setIsSaved] = useState<boolean>(false);
     const [geocodeMessage, setGeocodeMessage] = useState<string>("");
-    const [listing, setListing] = useState<Listing | undefined>(myListings.find(list => list.id === id));
+    const [listing, setListing] = useState<Listing | undefined>();
     const [files, setFiles] = useState<{ file: File }[]>([]);
 
     async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -35,13 +35,7 @@ function EditListing() {
         setIsSaving(true);
         try {
             const getList = await updateListing(listing, files);
-            if (getList) {
-                setMyListings(prev => prev.map((list) => {
-                    return listing.id == getList.id ? {...getList} : list
-                }));
-            }
-            console.log(getList)
-            setListing(prev => getList ? ({...getList}) : prev)
+            setListing(prev => getList ? ({...getList}) : prev);
             setFiles([]);
             setIsSaving(false);
             setIsSaved(true);
@@ -137,7 +131,7 @@ function EditListing() {
         async function getListing() {
             try {
                 const res = await getListingById(id);
-                setListing(res)
+                setListing(res);
             } catch (error) {
                 console.log(error);
                 throw error;

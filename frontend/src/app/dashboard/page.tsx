@@ -25,7 +25,6 @@ export default function Dashboard() {
         try {
             if (user) {
                 const result = await loadMyListings(user, myListings[myListings.length - 1]);
-                console.log(result)
                 if (result?.length) setMyListings([...result]);
             }
         } catch (error) {
@@ -57,10 +56,8 @@ export default function Dashboard() {
             if (!lastItem) return;
             setFetchingAgain(true)
             try {
-                setTimeout(async () => {
-                    const result = await loadMyListings(user, lastItem);
-                    if(result?.length) setMyListings(prev => [...prev, ...result])
-                }, 3000); 
+                const result = await loadMyListings(user, lastItem);
+                if (result?.length) setMyListings(prev => [...prev, ...result])
             } catch (error) {
                 console.log(error);
             } finally {
@@ -70,7 +67,7 @@ export default function Dashboard() {
     }
 
     useEffect(() => {
-        if(user) initialFetch();
+        if (user) initialFetch();
     }, [user?.id])
 
     return <>
@@ -107,7 +104,7 @@ export default function Dashboard() {
                                 </div>
                     }
                     {
-                        fetchingAgain && <div className="border-5 border-accent-500 border-b-transparent w-12 h-12 shrink-0 mx-auto block bg-transparent animate-spin rounded-full" /> 
+                        fetchingAgain && <div className="border-5 border-accent-500 border-b-transparent w-12 h-12 shrink-0 mx-auto block bg-transparent animate-spin rounded-full" />
                     }
                 </div>
             </div>

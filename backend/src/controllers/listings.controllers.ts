@@ -201,7 +201,7 @@ export const loadListingInitially = async (req: Request, res: Response) => {
             LEFT JOIN listing_images li ON li.listing_id = l.id
             GROUP BY l.id
             ORDER BY l.created_at DESC
-            LIMIT 1;
+            LIMIT 10;
         `;
         const result = await pool.query(query);
         sendResponse(res, [...result.rows]);
@@ -266,7 +266,7 @@ export const loadListings = async (req: Request, res: Response) => {
                 )
             GROUP BY l.id
             ORDER BY l.created_at DESC
-            LIMIT 1;
+            LIMIT 10;
         `;
         const result = await pool.query(query, [property_type, min_price, max_price, bedrooms, bathrooms, status, search_value, last_item?.created_at]);
         console.log(result.rows, search_value)
@@ -316,7 +316,7 @@ export const getAgentListing = async (req: Request, res: Response) => {
                 )
             GROUP BY l.id
             ORDER BY l.created_at DESC
-            LIMIT 1;
+            LIMIT 10;
         ;`;
     try {
         const result = await pool.query(query, [user.id, last_item?.created_at])
