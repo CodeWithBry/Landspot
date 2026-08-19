@@ -1,3 +1,4 @@
+'use client'
 import { navContext } from "@/context/NavigationProvider";
 import { NavigationContextType } from "@/types/NavigationContextType";
 import { Menu, X } from "lucide-react";
