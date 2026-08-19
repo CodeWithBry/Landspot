@@ -8,9 +8,12 @@ import { api } from '@/lib/api';
 import { Listing } from '@/types/ListingType';
 import { NavigationContextType } from '@/types/NavigationContextType';
 import { LocateIcon, Menu, Search, X } from 'lucide-react';
-import { ChangeEvent, Suspense, useContext, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { ChangeEvent, useContext, useEffect, useRef, useState } from 'react';
 
-function MapPage({listingId}: {listingId: string | null}) {
+function MapPage() {
+    const searchParams = useSearchParams();
+    const listingId = searchParams.get("id");
     const [val, debounceVal, setDebounceVal] = useDebounce();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
     const { listings, getListingById, onBoundsChange } = useListing();
