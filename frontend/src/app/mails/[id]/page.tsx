@@ -11,14 +11,14 @@ import { useContext, useEffect, useState } from 'react'
 function MessagePreview() {
   const { id } = useParams<{ id: string }>();
   const { setShowMenu, showMenu } = useContext(navContext) as NavigationContextType;
-  const [notification, setNotification] = useState<NotificationsType | null>(null);
+  const [mail, setMail] = useState<MailType | null>(null);
 
   useEffect(() => {
     if (id != "") {
-      api.get(`/api/notifications/get-notif-by-id/${id}`)
+      api.get(`/api/mails/get-mail-by-id/${id}`)
         .then((res) => {
           const data = res.data.data;
-          setNotification({ ...data });
+          setMail({ ...data });
         }).catch(e => { throw e });
     }
   }, [id])
@@ -35,23 +35,23 @@ function MessagePreview() {
                 !showMenu ? <Menu size={18} /> : <X size={18} />
               }
             </button>
-            <span>Notifications</span>
+            <span>Mails</span>
           </h2>
         </header>
         <hr className="w-[97.5%] h-px text-gray-300 block mx-auto rounded-full" />
         <header className='flex place-items-center gap-1 w-[97.5%] mx-auto p-1 bg-gray-100'>
           <Link
-            href={"/notifications"}
+            href={"/mails"}
             className='flex justify-center place-items-center p-2 hover:bg-gray-200 transition cursor-pointer rounded-full'>
             <MoveLeft size={16} scale={1} className='shrink-0' />
           </Link>
-          <h2 className='text-md font-semibold max-w-[50%] h-fit truncate'>{notification?.title}</h2>
+          <h2 className='text-md font-semibold max-w-[50%] h-fit truncate'>{mail?.subject}</h2>
         </header>
         <hr className="w-[97.5%] h-px text-gray-300 block mx-auto rounded-full" />
         {/* MESSAGE BODY */}
         <div
           className="w-[97.5%] mx-auto"
-          dangerouslySetInnerHTML={{ __html: notification?.html ?? "" }}
+          dangerouslySetInnerHTML={{ __html: mail?.html ?? "" }}
         />
       </div>
     </section>

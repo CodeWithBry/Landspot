@@ -13,9 +13,10 @@ import { ChangeEvent, useContext, useEffect, useState } from "react";
 function Listings() {
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
     const [val, debounceVal, setDebounceVal] = useDebounce();
-    const { loadListing, loadListingInitially, searchListing } = useListing();
+    const { loadListing, loadListingInitially } = useListing();
     const [noResult, setNoResult] = useState<boolean>(false);
     const [isFetching, setIsFetching] = useState<boolean>(true);
+    const [fetchingAgain, setFetchingAgain] = useState<boolean>(false);
     const [showFilterBox, setShowFilterBox] = useState<boolean>(false);
     const [applyFilter, setApplyFilter] = useState<boolean>(false);
     const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -33,11 +34,12 @@ function Listings() {
         setApplyFilter
     };
 
-    async function getListings(filterOptions: FilterOptions) {
+    async function filterListingsUsingSearch(filterOptions: FilterOptions) {
+        setFetchingAgain(true);
         try {
-            const res = await loadListing({ ...filterOptions });
+            const res = await loadListing({ ...filterOptions }, val, null);
             if (res) {
-                setListingResult([...res]);
+                setListingResult(prev => prev && !val ? [...prev, ...res] : [...res]);
                 return;
             }
             setListingResult(null);
@@ -45,6 +47,29 @@ function Listings() {
         } catch (error) {
             setNoResult(true);
             throw error;
+        } finally {
+            setFetchingAgain(false);
+        }
+    }
+
+    async function getListings(filterOptions: FilterOptions) {
+        setFetchingAgain(true);
+        try {
+            const res = await loadListing({ ...filterOptions }, val, listingResult ? listingResult[listingResult?.length - 1] : null);
+            if (res) {
+                setListingResult(prev => {
+                    if(prev) return [...prev, ...res];
+                    return prev;
+                });
+                return;
+            }
+            setListingResult(null);
+            setNoResult(true);
+        } catch (error) {
+            setNoResult(true);
+            throw error;
+        } finally {
+            setFetchingAgain(false);
         }
     }
 
@@ -71,7 +96,7 @@ function Listings() {
         }
 
         if (!val) loadListing();
-        else getListings(filterOptions);
+        else filterListingsUsingSearch(filterOptions);
     }, [val])
 
 
@@ -79,8 +104,8 @@ function Listings() {
         <FilterBox {...filterBoxArgs} />
         <section className="w-full h-full relative flex justify-center overflow-hidden overflow-y-auto">
             <div className="max-w-300 w-full h-full flex flex-col mx-5">
-                <header className="flex items-center gap-2 my-10">
-                    <h2 className="text-black font-serif text-2xl font-bold flex gap-2 place-items-center">
+                <header className="flex flex-col md:flex-row md:items-center gap-2 md:my-10 my-2 mx-5">
+                    <h2 className="text-black font-serif sm:text-2xl text-xl font-bold flex gap-2 place-items-center">
                         <button
                             onClick={() => setShowMenu(prev => !prev)}
                             className='p-3 rounded-full transition cursor-pointer  hover:bg-accent-400 hover:text-white'>
@@ -90,33 +115,35 @@ function Listings() {
                         </button>
                         <span>Listings</span>
                     </h2>
-                    <label
-                        htmlFor="search-input"
-                        className="flex items-center gap-2 w-60 ml-auto px-3 py-1.5 border-2 rounded-md border-gray-400" >
-                        <Search size={16} />
-                        <input
-                            id="search-input"
-                            type="text"
-                            className="md:w-full text-md outline-0"
-                            placeholder="Search title, address and etc..."
-                            value={debounceVal}
-                            onChange={(e) => {
-                                setDebounceVal(e.target.value)
-                                setFilterOptions(prev => ({ ...prev, description: e.target.value }))
-                            }} />
-                    </label>
-                    <button
-                        onClick={() => setShowFilterBox(prev => !prev)}
-                        className="btn h-full bg-accent-400 text-white hover:opacity-70 active:opacity-90">
-                        <Filter size={16} />
-                        <span className="md:block hidden">Filter Options</span>
-                    </button>
+                    <div
+                        className="flex mx-2 md:ml-auto">
+                        <div
+                            className="flex gap-2 w-full">
+                            <label
+                                htmlFor="search-input"
+                                className="flex items-center gap-2 w-full md:w-60 ml-auto px-3 py-1.5 border-2 rounded-md border-gray-400" >
+                                <Search size={16} />
+                                <input
+                                    id="search-input"
+                                    type="text"
+                                    className="w-full text-md outline-0"
+                                    placeholder="Search title, address and etc..."
+                                    value={debounceVal}
+                                    onChange={(e) => {
+                                        setDebounceVal(e.target.value)
+                                        setFilterOptions(prev => ({ ...prev, description: e.target.value }))
+                                    }} />
+                            </label>
+                            <button
+                                onClick={() => setShowFilterBox(prev => !prev)}
+                                className="btn h-full bg-accent-400 text-white hover:opacity-70 active:opacity-90">
+                                <Filter size={16} />
+                                <span className="md:block hidden">Filter Options</span>
+                            </button>
+                        </div>
+                    </div>
                 </header>
-                <div className="">
-
-                </div>
-
-                <div className="w-[90%] py-2 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] px-2 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
+                <div className="w-[90%] py-2 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] px-px h-full relative overflow-x-hidden mx-auto flex flex-col gap-2">
                     {
                         isFetching ?
                             Array.from({ length: 5 }).map((_, idx) => <ListingSkeleton key={idx} />) :
@@ -129,7 +156,18 @@ function Listings() {
                                 </div> :
                                 listingResult?.map((listing) => <ListingCard key={listing.id} listing={listing} setListingResult={setListingResult} />)
                     }
+                    {
+                        fetchingAgain ?
+                            <div className="border-5 border-accent-500 border-b-transparent w-12 h-12 shrink-0 mx-auto block bg-transparent animate-spin rounded-full" /> :
+                            <button
+                                className="btn block mx-auto my-2 border-2 border-gray-600 font-serif"
+                                onClick={() => getListings(filterOptions)}>
+                                Load More
+                            </button>
+                    }
                 </div>
+
+
             </div>
         </section>
     </>)

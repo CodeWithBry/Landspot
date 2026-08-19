@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS profile_images (
     id              UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     profile_id      UUID NOT NULL REFERENCES profiles(profile_id) ON DELETE CASCADE,
-    public_id       TEXT NOT NULL PRIMARY KEY,
+    public_id       TEXT NOT NULL,
     photo_url       TEXT NOT NULL,
     created_at      DATE NOT NULL
 );

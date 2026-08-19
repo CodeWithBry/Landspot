@@ -6,7 +6,7 @@ import AuthRouter from "./routes/authRoute";
 import ListingsRouter from "./routes/listingsRoute";
 import CloudinaryRouter from "./routes/cloudinaryRoute";
 import FavoritesRouter from "./routes/favoritesRoute"
-import NotificationsRouter from "./routes/notificationsRoute"
+import MailsRoute from "./routes/mailsRoute";
 
 export const app = express();
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }))
@@ -17,4 +17,4 @@ app.use('/api/auth', AuthRouter);
 app.use('/api/listings', ListingsRouter);
 app.use('/api/cloudinary', CloudinaryRouter);
 app.use('/api/favorites', FavoritesRouter);
-app.use('/api/notifications', NotificationsRouter);
+app.use('/api/mails', MailsRoute);

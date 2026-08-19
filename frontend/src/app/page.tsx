@@ -26,21 +26,35 @@ function Map() {
   const [center, setCenter] = useState<[number, number] | null>(null);
   const [results, setResults] = useState<Listing[] | null>(null);
 
-  useEffect(() => {
-    async function searchListing() {
-      try {
-        const { data } = (await api.get(`/api/listings/search/${val}`)).data;
-        if (!data?.length) {
-          return setNoResults(true)
-        }
-        setNoResults(false);
-        setResults([...data]);
-      } catch (error) {
-        console.log(error);
-        throw error
+  async function searchListing() {
+    try {
+      const { data } = (await api.get(`/api/listings/search/${val}`)).data;
+      if (!data?.length) {
+        return setNoResults(true)
       }
+      setNoResults(false);
+      setResults([...data]);
+    } catch (error) {
+      console.log(error);
+      throw error
     }
+  }
 
+  async function defineListing() {
+    setLoading(true);
+    try {
+      if (listingId == null) return;
+      const listing = await getListingById(listingId);
+
+      if (listing) {
+        setCenter([listing.lat, listing.lng]);
+      }
+    } catch (error) {
+      throw error;
+    } finally { setLoading(false) }
+  }
+
+  useEffect(() => {
     if (val) searchListing()
     else setResults(null)
   }, [val])
@@ -73,23 +87,10 @@ function Map() {
   }, [])
 
   useEffect(() => {
-    async function defineListing() {
-      setLoading(true);
-      try {
-        if (listingId == null) return;
-        const listing = await getListingById(listingId);
-
-        if (listing) {
-          setCenter([listing.lat, listing.lng]);
-        }
-      } catch (error) {
-        throw error;
-      } finally { setLoading(false) }
-    }
     if (listingId) defineListing()
   }, [listingId])
 
-  if(loading) {
+  if (loading) {
     return <div className="w-full h-full bg-gray-100 animate-pulse flex items-center justify-center">
       <span className="text-sm text-gray-400">Loading map...</span>
     </div>
@@ -141,7 +142,7 @@ function Map() {
                     <p className='text-sm'>{list.address}</p>
                   </div>
 
-                  <LocateIcon size={26} className='block ml-auto'/>
+                  <LocateIcon size={26} className='block ml-auto' />
                 </label>
               })
           }

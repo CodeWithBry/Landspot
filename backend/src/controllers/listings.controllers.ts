@@ -8,7 +8,7 @@ export const getAgentById = async (req: Request, res: Response) => {
     try {
         const { agent_id } = req.params;
         const query = `
-            SELECT email, name FROM users WHERE id = $1;
+            SELECT email, user_name FROM users WHERE id = $1;
         `
         const result = await pool.query(query, [agent_id]);
         if (result.rows) {
@@ -38,18 +38,19 @@ export const getListings = async (req: Request, res: Response) => {
             l.status,
             l.created_at,
             COALESCE(
-            json_agg(
-                json_build_object(
-                'id',                   li.id,
-                'cloudinary_url',       li.cloudinary_url,
-                'cloudinary_public_id', li.cloudinary_public_id,
-                'display_order',        li.display_order
-                ) ORDER BY li.display_order
-            ) FILTER (WHERE li.id IS NOT NULL),
-            '[]'
+                json_agg(
+                    json_build_object(
+                    'id',                   li.id,
+                    'cloudinary_url',       li.cloudinary_url,
+                    'cloudinary_public_id', li.cloudinary_public_id,
+                    'display_order',        li.display_order
+                    ) ORDER BY li.display_order
+                ) FILTER (WHERE li.id IS NOT NULL), '[]'
             ) AS images
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
+            WHERE 
+                l.created_at > $1
             GROUP BY l.id
             ORDER BY l.created_at DESC
         ;`);
@@ -65,7 +66,66 @@ export const getListingById = async (req: Request, res: Response) => {
     try {
         const query = `
             SELECT 
+                l.id,
+                l.agent_name,
+                l.agent_id,
+                l.title,
+                l.description,
+                l.property_type,
+                l.price,
+                l.bedrooms,
+                l.bathrooms,
+                l.address,
+                l.lat,
+                l.lng,
+                l.status,
+                l.created_at,
+                COALESCE(
+                    json_agg(
+                        json_build_object(
+                        'id',                   li.id,
+                        'cloudinary_url',       li.cloudinary_url,
+                        'cloudinary_public_id', li.cloudinary_public_id,
+                        'display_order',        li.display_order
+                        ) ORDER BY li.display_order
+                    ) FILTER (WHERE li.id IS NOT NULL), '[]'
+                ) AS images,
+            u.email
+            FROM listings l
+            LEFT JOIN listing_images li ON li.listing_id = l.id
+            INNER JOIN users u ON l.agent_id = u.id
+            WHERE l.id = $1
+            GROUP BY l.id, 
+                     l.agent_name,
+                     l.agent_id, 
+                     l.title, 
+                     l.description, 
+                     l.property_type, 
+                     l.price, 
+                     l.bedrooms, 
+                     l.bathrooms, 
+                     l.address, 
+                     l.lat, 
+                     l.lng, 
+                     l.status, 
+                     l.created_at, 
+                     u.email;`;
+        const result = await pool.query(query, [listing_id]);
+        const checkIfInFavorites = await pool.query(`SELECT * FROM favorites WHERE listing_id = $1 AND user_id = $2`, [result.rows[0].id, user_id])
+        const data = [{ ...result.rows[0], agent_email: result.rows[0].email, isFavorite: checkIfInFavorites.rows[0] ? true : false }]
+        sendResponse(res, data);
+    } catch (error) {
+        console.log(error)
+        if (error instanceof Error) sendError(res, error.message);
+    }
+}
+
+export const getListingsOnBound = async (req: Request, res: Response) => {
+    const { west, east, north, south } = req.body;
+    const query = `
+        SELECT 
             l.id,
+            l.agent_name,
             l.agent_id,
             l.title,
             l.description,
@@ -78,68 +138,25 @@ export const getListingById = async (req: Request, res: Response) => {
             l.lng,
             l.status,
             l.created_at,
-            CASE 
-                WHEN COUNT(li.id) = 0 THEN '[]'::json
-                ELSE json_agg(
+            COALESCE(
+                json_agg(
                     json_build_object(
-                        'id',                   li.id,
-                        'cloudinary_url',       li.cloudinary_url,
-                        'cloudinary_public_id', li.cloudinary_public_id,
-                        'display_order',        li.display_order
+                    'id',                   li.id,
+                    'cloudinary_url',       li.cloudinary_url,
+                    'cloudinary_public_id', li.cloudinary_public_id,
+                    'display_order',        li.display_order
                     ) ORDER BY li.display_order
-                )
-            END AS images,
-            u.email
-            FROM listings l
+                ) FILTER (WHERE li.id IS NOT NULL), '[]'
+            ) AS images
+            FROM listings as l
             LEFT JOIN listing_images li ON li.listing_id = l.id
-            INNER JOIN users u ON l.agent_id = u.id
-            WHERE l.id = $1
-            GROUP BY l.id, 
-            l.agent_id, 
-            l.title, 
-            l.description, 
-            l.property_type, 
-            l.price, 
-            l.bedrooms, 
-            l.bathrooms, 
-            l.address, 
-            l.lat, 
-            l.lng, 
-            l.status, 
-            l.created_at, 
-            u.email;
-        `;
-        const result = await pool.query(query, [listing_id]);
-        const checkIfInFavorites = await pool.query(`SELECT * FROM favorites WHERE listing_id = $1 AND user_id = $2`, [result.rows[0].id, user_id])
-        const data = [{ ...result.rows[0], agent_email: result.rows[0].email, isFavorite: checkIfInFavorites.rows[0] ? true : false }]
-        sendResponse(res, data);
-    } catch (error) {
-        if (error instanceof Error) sendError(res, error.message);
-    }
-}
-
-export const getListingsOnBound = async (req: Request, res: Response) => {
-    const { west, east, north, south } = req.body;
-    const query = `
-        SELECT l.id,
-            l.agent_id,
-            l.title,
-            l.description,
-            l.property_type,
-            l.price,
-            l.bedrooms,
-            l.bathrooms,
-            l.address,
-            l.lat,
-            l.lng,
-            l.status,
-            l.created_at FROM listings as l
             WHERE l.lat BETWEEN $1 AND $2
             AND l.lng BETWEEN $3 AND $4
+            GROUP BY l.id;
     `
     try {
         const response = await pool.query(query, [south, north, west, east]);
-        if(response.rows.length > 0) {
+        if (response.rows.length > 0) {
             sendResponse(res, response.rows);
             return;
         }
@@ -184,9 +201,9 @@ export const loadListingInitially = async (req: Request, res: Response) => {
             LEFT JOIN listing_images li ON li.listing_id = l.id
             GROUP BY l.id
             ORDER BY l.created_at DESC
+            LIMIT 1;
         `;
         const result = await pool.query(query);
-        console.log(result.rows[0]?.agent_name);
         sendResponse(res, [...result.rows]);
     } catch (err) {
         if (err instanceof Error) sendError(res, err.message);
@@ -199,8 +216,7 @@ export const loadListings = async (req: Request, res: Response) => {
         const { property_type, min_price,
             max_price, bedrooms,
             bathrooms, status,
-            description } = req.body;
-        console.log(description)
+            search_value, last_item } = req.body;
         const query = `
             SELECT 
                 l.id,
@@ -244,21 +260,26 @@ export const loadListings = async (req: Request, res: Response) => {
                     OR l.title ILIKE '%' || $7 || '%'
                     OR l.description ILIKE '%' || $7 || '%'
                 )
+                AND (
+                    $8::timestamptz IS NULL 
+                    OR l.created_at < $8
+                )
             GROUP BY l.id
             ORDER BY l.created_at DESC
+            LIMIT 1;
         `;
-        // console.log("values:", [property_type, min_price, max_price, bedrooms, bathrooms, status, description]);
-        const result = await pool.query(query, [property_type, min_price, max_price, bedrooms, bathrooms, status, description]);
-        console.log(result.rows)
+        const result = await pool.query(query, [property_type, min_price, max_price, bedrooms, bathrooms, status, search_value, last_item?.created_at]);
+        console.log(result.rows, search_value)
         sendResponse(res, [...result.rows]);
     } catch (err) {
+        console.log(err)
         if (err instanceof Error) sendError(res, err.message);
         throw err
     }
 }
 
 export const getAgentListing = async (req: Request, res: Response) => {
-    const { user } = req.body;
+    const { user, last_item } = req.body;
     const query = `
             SELECT 
             l.id,
@@ -287,12 +308,18 @@ export const getAgentListing = async (req: Request, res: Response) => {
             ) AS images
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
-            WHERE l.agent_id = $1
+            WHERE 
+                l.agent_id = $1 
+                AND (
+                    $2::timestamptz IS NULL 
+                    OR l.created_at < $2
+                )
             GROUP BY l.id
             ORDER BY l.created_at DESC
+            LIMIT 1;
         ;`;
     try {
-        const result = await pool.query(query, [user.id])
+        const result = await pool.query(query, [user.id, last_item?.created_at])
         sendResponse(res, result.rows)
     } catch (err) {
         if (err instanceof Error) sendError(res, err.message);
@@ -399,6 +426,7 @@ export async function searchListings(req: Request, res: Response) {
     try {
         const query = `
             SELECT
+                l.id,
                 l.agent_id,
                 l.title,
                 l.description,
@@ -409,7 +437,6 @@ export async function searchListings(req: Request, res: Response) {
                 l.address,
                 l.lat,
                 l.lng,
-
                 COALESCE(
                     json_agg(
                         json_build_object(
@@ -434,6 +461,7 @@ export async function searchListings(req: Request, res: Response) {
         const keyword = `%${params}%`
         const result = await pool.query(query, [keyword]);
         const data = result.rows;
+        console.log(data)
         if (data.length) {
             return sendResponse(res, data);
         }

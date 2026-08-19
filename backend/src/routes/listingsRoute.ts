@@ -5,16 +5,16 @@ import { requireAuth } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.post("/get-listings", getListings);
-router.post("/get-listing-by-id", getListingById);
+router.post("/get-listings", getListings); // listings 
+router.post("/get-listing-by-id", getListingById); // single-list
 router.post("/add-listing", requireAuth, requireRole('agent'), createNewListing);
 router.post("/my-listing", getAgentListing); 
 router.post("/test-address", testAddress);
 router.get("/load-listings-initially", loadListingInitially);
-router.post("/load-listings", loadListings);
+router.post("/load-listings", loadListings); // get listings in listing format
 router.post("/delete-list/:params", requireAuth, requireRole('agent'), deleteListing);
 router.get("/search/:params", searchListings);
-router.post("/update-listing", requireAuth, requireRole('agent'), updateListing)
+router.post("/update-listing", requireAuth, requireRole('agent'), updateListing);
 router.post("/delete-image/:id", requireAuth, requireRole("agent"), deleteFromListingImages);
 router.get("/get-agent/:agent_id", getAgentById);
 router.post("/get-listings-onbound", getListingsOnBound);

@@ -3,6 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { AlertCircle, WifiOff, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
 
 type FormAuth = {
@@ -15,6 +16,7 @@ type FormAuth = {
 
 export default function Singup() {
   const { signup } = useAuth();
+  const navigation = useRouter();
   const [failedToCreateAccount, setFailedToCreateAccount] = useState<boolean>(false);
   const [loadingAuth, setLoadingAuth] = useState<boolean>(false);
   const [isInitiallySubmitted, setIsInitiallySubmitted] = useState<boolean>(false);
@@ -23,21 +25,24 @@ export default function Singup() {
     userName: "", email: "", password: "", confirmPassword: "", role: "buyer"
   });
 
-  function displayViolation(e: ChangeEvent<HTMLInputElement> | null, idx: number, checkInputs?: boolean) {
-    if (!isInitiallySubmitted && !checkInputs) return console.log(idx);
+  function displayViolation(e: ChangeEvent<HTMLInputElement> | null, idx: number, checkInputs?: boolean): boolean {
+    if (!isInitiallySubmitted && !checkInputs) return false;
+    let errorOccured = false;
     const usernameViolation = document.querySelector("#username-violation");
     const emailViolation = document.querySelector("#email-violation")
     const passwordViolation = document.querySelector("#password-violation");
     const confirmPassViolation = document.querySelector("#confirm-password-violation");
 
-    if (!usernameViolation || !passwordViolation || !confirmPassViolation || !emailViolation) return;
+    if (!usernameViolation || !passwordViolation || !confirmPassViolation || !emailViolation) return false;
 
     switch (idx) {
       case 1:
         if (e?.target.value.length == 0 || (form.userName.length == 0 && checkInputs)) {
           usernameViolation.innerHTML = "Don't leave this field blank!";
+          errorOccured = true;
         } else if ((e && e?.target.value.length < 8) || (form.userName.length < 8 && checkInputs)) {
           usernameViolation.innerHTML = "The username must consist of 8 characters!";
+          errorOccured = true;
         } else {
           usernameViolation.innerHTML = "";
         }
@@ -45,6 +50,7 @@ export default function Singup() {
       case 2:
         if (e?.target.value.length == 0 || (form.email.length == 0 && checkInputs)) {
           emailViolation.innerHTML = "The email is required!";
+          errorOccured = true;
         } else {
           emailViolation.innerHTML = "";
         }
@@ -52,23 +58,45 @@ export default function Singup() {
       case 3:
         if (e?.target.value.length == 0 || (form.password.length == 0 && checkInputs)) {
           passwordViolation.innerHTML = "Don't leave this field blank!"
+          errorOccured = true;
         } else if (e && e.target.value.length < 8 || (form.password.length < 8 && checkInputs)) {
           passwordViolation.innerHTML = "The password must consist of 8 characters and above!";
-        } else passwordViolation.innerHTML = ""
+          errorOccured = true;
+        } else {
+          passwordViolation.innerHTML = ""
+        }
         break;
       case 4:
         if (e?.target.value.length == 0 || (form.confirmPassword.length == 0 && checkInputs)) {
           confirmPassViolation.innerHTML = "Don't leave this field blank!"
-        } else if (form.password != e?.target.value) {
+        } else if (form.password != form.confirmPassword) {
+          console.log(form.password, e?.target.value)
           confirmPassViolation.innerHTML = "Password not matched!";
-        } else confirmPassViolation.innerHTML = ""
+          errorOccured = true;
+        } else {
+          confirmPassViolation.innerHTML = ""
+        }
         break;
     }
+
+    return errorOccured;
   }
 
   async function handleSubmit() {
+    let errorOccured = false;
     setIsInitiallySubmitted(true);
     setLoadingAuth(true);
+    // Check for possible input violations
+    for (let i = 1; i < 5; i++) {
+      errorOccured = displayViolation(null, i, true);
+      if(errorOccured) break;
+    }
+
+    if(errorOccured) {
+      setLoadingAuth(false);
+      return;
+    }
+
     try {
       const res = await signup(form.email, form.userName, form.password, form.role);
       setLoadingAuth(false);
@@ -76,10 +104,8 @@ export default function Singup() {
         setLoadingAuth(false);
         setFailedToCreateAccount(true);
         setErrorDesc(res);
-      }
-      // Check for possible input violations
-      for (let i = 1; i < 5; i++) {
-        displayViolation(null, i, true);
+      } else {
+        navigation.push("/login");
       }
     } catch (error) {
       setLoadingAuth(false);

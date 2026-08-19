@@ -133,7 +133,9 @@ function AddListing() {
     }, [debounceValue]);
 
     useEffect(() => {
-        if(user?.email) setForm(prev => ({...prev, agent_email: user.email, agent_name: user.name}))
+        if(user?.email) {
+            setForm(prev => ({...prev, agent_email: user.email, agent_name: user.user_name}));
+        }
     }, [user?.email])
 
     return (
@@ -281,7 +283,7 @@ function AddListing() {
                     <div className="flex gap-2 mt-1 md:flex-row flex-col">
                         <Link
                             href={'/dashboard'}
-                            className="btn text-center bg-gray-500 text-white opacity-80 hover:opacity-100 md:w-1/2 w-full">
+                            className="btn justify-center bg-gray-500 text-white opacity-80 hover:opacity-100 md:w-1/2 w-full">
                             Cancel
                         </Link>
                         <button

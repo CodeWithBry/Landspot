@@ -43,7 +43,7 @@ function ListingCard({ listing, setListingResult }: Props) {
                     style={{ ...imageStyle }} />
             </div>
             <div className="w-full mx-auto pb-3 h-full flex justify-center place-items-center">
-                <div className="w-[95%] h-[90%] flex flex-col">
+                <div className="w-[90%] h-[90%] flex flex-col">
                     <div className="flex justify-between font-serif">
                         <h1 className="text-xl font-bold truncate w-[60%]">{listing.title}</h1>
                         <h1 className="text-xl font-bold text-nowrap">₱ {(listing?.price ? Math.floor(listing.price / 1) : 0).toLocaleString("en-US")} </h1>
@@ -61,24 +61,24 @@ function ListingCard({ listing, setListingResult }: Props) {
                         <div className="flex gap-2 items-center w-full h-full">
                             <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient">{listing?.agent_name && listing.agent_name[0].toLocaleUpperCase()}</h2>
                             <div className="flex flex-col">
-                                <p className="font-semibold tex-black">{listing?.agent_name}</p>
-                                <span className="text-gray-500 text-sm">{listing?.agent_email}</span>
+                                <p className="font-semibold tex-black text-sm sm:text-md">{listing?.agent_name}</p>
+                                <span className="text-gray-500 text-xs sm:text-sm">{listing?.agent_email}</span>
                             </div>
                         </div>
                     </div>
                     <div className="border-t-2 border-gray-300 py-2 flex flex-col gap-2 mt-auto">
-                        <div className="flex gap-4">
+                        <div className="flex sm:gap-4 gap-2 ">
                             <Link
                                 href={`/listings/${listing.id}`}
                                 className="btn bg-accent-400 text-white [1400px]:text-md text-sm">
                                 <Eye size={16} />
-                                <span>View Listing</span>
+                                <span className="sm:block hidden">View Listing</span>
                             </Link>
                             <Link
                                 href={`/?id=${listing.id}`}
                                 className="btn bg-gray-200 text-gray-900 [1400px]:text-md text-sm">
                                 <Map size={16} />
-                                <span>See on map</span>
+                                <span className="sm:block hidden">See on map</span>
                             </Link>
 
                             <button

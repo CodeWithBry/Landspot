@@ -10,30 +10,27 @@ import { abort } from "process";
 import axios from "axios";
 
 export type UseListingType = {
-  listings: Listing[], myListings: Listing[],
+  listings: Listing[],
   setListings: Dispatch<SetStateAction<Listing[]>>,
-  setMyListings: Dispatch<SetStateAction<Listing[]>>,
-  isMyListingLoading: boolean, setIsMyListingLoading: Dispatch<SetStateAction<boolean>>,
   loadingListings: boolean,
   error?: Error | string,
   addNewListing: (form: ListingForm) => Promise<Listing | undefined>,
   testAddress: (address: string) => Promise<{ lat: number, lng: number } | undefined>,
-  loadListingInitially: () => Promise<Listing[] | undefined>
-  loadListing: (filterOptions: FilterOptions) => Promise<Listing[] | undefined>
-  searchListing: (val: string) => Promise<Listing[] | undefined>
+  loadListingInitially: () => Promise<Listing[] | undefined>,
+  loadMyListings: (user: User, last_item: Listing | null) => Promise<Listing[] | undefined>,
+  loadListing: (filterOptions: FilterOptions, search_value: string, last_item: Listing | null) => Promise<Listing[] | undefined>,
+  searchListing: (val: string) => Promise<Listing[] | undefined>,
   getListingById: (listing_id: string) => Promise<Listing | undefined>,
   deleteFromListing: (id: string, user_id: string) => void,
   updateListing: (listing: Listing, fileData: { file: File }[]) => Promise<undefined | Listing>,
-  onBoundsChange: (bounds: LatLngBounds) => void;
+  onBoundsChange: (bounds: LatLngBounds) => void
 }
 
 export function useListing(): UseListingType {
   const { user, isDataLoaded } = useAuth();
   const abortController = useRef<AbortController | null>(null);
   const [loadingListings, setLoadingListings] = useState<boolean>(false);
-  const [isMyListingLoading, setIsMyListingLoading] = useState<boolean>(false);
   const [listings, setListings] = useState<Listing[]>([]);
-  const [myListings, setMyListings] = useState<Listing[]>([]);
   const [error, setError] = useState<Error | string>();
 
   const addNewListing = async (form: ListingForm): Promise<Listing | undefined> => {
@@ -67,9 +64,10 @@ export function useListing(): UseListingType {
     }
   };
 
-  const loadListing = async (filterOptions: FilterOptions): Promise<Listing[] | undefined> => {
+  const loadListing = async (filterOptions: FilterOptions, search_value: string, last_item: Listing | null): Promise<Listing[] | undefined> => {
     try {
-      const res = await api.post('/api/listings/load-listings', { ...filterOptions });
+      console.log(search_value)
+      const res = await api.post('/api/listings/load-listings', { ...filterOptions, search_value, last_item });
       return [...res.data.data];
     } catch (error) {
       console.log(error)
@@ -77,15 +75,13 @@ export function useListing(): UseListingType {
     }
   };
 
-  const loadMyListings = async (user: User) => {
-    setIsMyListingLoading(true);
+  const loadMyListings = async (user: User, last_item: Listing | null): Promise<Listing[] | undefined> => {
     try {
-      const { data } = (await api.post('/api/listings/my-listing', { user })).data;
-      setMyListings(data);
+      const { data } = (await api.post('/api/listings/my-listing', { user, last_item })).data;
+      return data;
     } catch (error) {
       throw (error);
     } finally {
-      setIsMyListingLoading(false);
     }
   }
 
@@ -93,6 +89,7 @@ export function useListing(): UseListingType {
     try {
       const result = await api.post("/api/listings/get-listing-by-id", { listing_id, user_id: user?.id });
       if (result.data.data) {
+        console.log(result.data.data[0])
         return result.data.data[0];
       }
     } catch (error) {
@@ -116,7 +113,7 @@ export function useListing(): UseListingType {
     try {
       await api.post(`/api/listings/update-listing`, { listing });
       setListings(prev => prev?.map((list) => list.id == listing.id ? ({ ...listing }) : list));
-      if (fileData.length > 0 && user?.name) {
+      if (fileData.length > 0 && user?.user_name) {
         const formData = new FormData();
         fileData.forEach((file) => formData.append("images", file.file));
         formData.append("listing_id", listing.id)
@@ -124,7 +121,7 @@ export function useListing(): UseListingType {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         const { data } = (await api.post('/api/listings/get-listing-by-id', { listing_id: listing.id, user_id: user.id })).data;
-        return data[0] as Listing
+        return data[0] as Listing;
       }
     } catch (error) {
       console.log(error);
@@ -140,7 +137,6 @@ export function useListing(): UseListingType {
         })
         return [...updatedListings]
       })
-      setMyListings(prev => prev.filter((list) => list.id != id));
 
       await api.post(`/api/listings/delete-list/${id}`, { user_id: user_id });
     } catch (error) {
@@ -164,11 +160,12 @@ export function useListing(): UseListingType {
         signal: controller.signal,
       });
       const { data } = result.data;
+      console.log(data)
       setListings(data);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         return;
-      } 
+      }
       console.log(error)
     }
   }, [])
@@ -176,19 +173,22 @@ export function useListing(): UseListingType {
   useEffect(() => {
     if (!isDataLoaded) return;
     setLoadingListings(true);
-    if (user?.name) loadMyListings(user)
   }, [isDataLoaded, user?.id])
 
-
   return {
-    listings, myListings,
-    isMyListingLoading, setIsMyListingLoading,
-    setListings, setMyListings,
-    getListingById, loadingListings,
-    error, addNewListing,
-    testAddress, loadListingInitially,
-    searchListing, loadListing,
-    deleteFromListing, updateListing,
+    listings,
+    setListings,
+    loadingListings,
+    error,
+    addNewListing,
+    testAddress,
+    loadListingInitially,
+    loadMyListings,
+    loadListing,
+    searchListing,
+    getListingById,
+    deleteFromListing,
+    updateListing,
     onBoundsChange
   };
 }

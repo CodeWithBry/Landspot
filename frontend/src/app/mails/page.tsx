@@ -3,64 +3,64 @@ import ListingSkeleton from "@/components/skeleton/ListingSkeleton";
 import SwitchButton from "@/components/ui/SwitchButton";
 import { navContext } from "@/context/NavigationProvider";
 import { useAuth } from "@/hooks/useAuth";
-import { api } from "@/lib/api";
+import { useMails } from "@/hooks/useMail";
 import { NavigationContextType } from "@/types/NavigationContextType";
 import { BellOffIcon, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
-function Notifications() {
+function Messages() {
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
     const { user } = useAuth();
-    const [notifications, setNotifications] = useState<NotificationsType[]>([]);
-    const [sortedNotifications, setSortedNotifications] = useState<SortedNotificationsType[]>([]);
+    const { getMails } = useMails();
+    const [mails, setMails] = useState<MailType[]>([]);
+    const [sortedMails, setSortedMails] = useState<SortedMailType[]>([]);
     const [isFetching, setIsFetching] = useState<boolean>(false);
 
-    async function fetchNotifs() {
+    async function getMail() {
         setIsFetching(true);
         try {
             if (user?.id) {
-                const result = (await api.post("/api/notifications/get-notifs", { user_id: user.id })).data;
-                const data = result.data as NotificationsType[];
-                setNotifications([...data]);
+                const result = await getMails();
+                if (result?.length) setMails([...result]);
             }
         } catch (error) {
             throw error;
-        } finally { setIsFetching(false) }
+        } finally {
+            setIsFetching(false);
+        }
     }
 
-
     function groupNotifications() {
-        const notifs: NotificationsType[] = [...notifications];
-        let groupedNotifs: SortedNotificationsType[] = [...sortedNotifications];
-        console.log(notifs)
-        notifs.forEach((notif) => {
-            const label = getRelativeTime(notif);
-            if (groupedNotifs.length == 0) {
-                groupedNotifs = [{ label, notifications: [notif] }];
+        const copiedMails: MailType[] = [...mails];
+        let groupedMails: SortedMailType[] = [...sortedMails];
+        copiedMails.forEach((mail) => {
+            const label = getRelativeTime(mail);
+            if (groupedMails.length == 0) {
+                groupedMails = [{ label, mails: [mail] }];
             } else {
-                groupedNotifs.forEach((group, index) => {
+                groupedMails.forEach((group, index) => {
                     if (group.label == label) {
-                        groupedNotifs = groupedNotifs.map((group) => {
+                        groupedMails = groupedMails.map((group) => {
                             if (label == group.label) return ({
                                 ...group,
-                                notifications: [...group.notifications, notif],
+                                mails: [...group.mails, mail],
                                 label
                             });
 
                             return group;
                         });
-                    } else if (index == groupedNotifs.length - 1 && group.label != label) {
-                        groupedNotifs = [...groupedNotifs, { label, notifications: [notif] }];
+                    } else if (index == groupedMails.length - 1 && group.label != label) {
+                        groupedMails = [...groupedMails, { label, mails: [mail] }];
                     }
                 })
             }
 
         })
-        setSortedNotifications([...groupedNotifs]);
+        setSortedMails([...groupedMails]);
     }
 
-    function getRelativeTime(notif: NotificationsType): string {
-        const sent_at = new Date(notif.sent_at);
+    function getRelativeTime(mail: MailType): string {
+        const sent_at = new Date(mail.sent_at);
         const today = new Date();
 
         const dateReceived = new Date(
@@ -79,13 +79,13 @@ function Notifications() {
         return label;
     }
 
-    useEffect(() => { fetchNotifs() }, [user?.id]);
+    useEffect(() => { getMail() }, [user?.id]);
 
     useEffect(() => {
-        if (notifications.length != 0 && sortedNotifications.length == 0) {
+        if (mails.length != 0 && sortedMails.length == 0) {
             groupNotifications();
         }
-    }, [notifications])
+    }, [mails])
 
     return (<>
         <section className="w-full h-full relative flex justify-center overflow-x-hidden overflow-y-scroll z-0">
@@ -100,7 +100,7 @@ function Notifications() {
                                 !showMenu ? <Menu size={18} /> : <X size={18} />
                             }
                         </button>
-                        <span>Notifications</span>
+                        <span>Mails</span>
 
                     </h2>
                     <div className="flex gap-1.5 place-items-center ml-auto text-md font-serif">
@@ -112,28 +112,34 @@ function Notifications() {
 
                 <div className="w-full h-full flex flex-col gap-2 px-4 my-2 font-serif">
                     {
-                        isFetching ? <div className="flex flex-col gap-1">
-                            {Array.from({length: 5}).map((_, idx) => {
-                                return <ListingSkeleton key={idx}/>
-                            })}
+                        isFetching ? <div className="flex flex-col gap-5 mt-2">
+                            {
+                                Array.from({ length: 3 }).map((_, idx) => {
+                                    return <div className="flex flex-col gap-2" key={"listing_div"+idx}>
+                                        <ListingSkeleton key={idx} height={25} width={70} />
+                                        {Array.from({ length: 5 }).map((_, idx) => {
+                                            return <ListingSkeleton key={idx} height={60} />
+                                        })}
+                                    </div>
+                                })
+                            }
                         </div> :
-                            sortedNotifications.length > 0 ? (
-                                sortedNotifications.map((group, idx) => {
+                            sortedMails.length > 0 ? (
+                                sortedMails.map((group, idx) => {
                                     return <div className="w-full flex flex-col py-2 gap-2" key={idx}>
                                         <h3 className="text-md text-black font-bold">{group.label}</h3>
-                                        {group.notifications.map((notif) => {
+                                        {group.mails.map((mail) => {
                                             return <Link
                                                 className="flex gap-2 w-full max-h-20 py-2 shadow-md px-3 rounded-md hover:bg-gray-200 transition-all cursor-pointer"
-                                                key={notif.id}
-                                                // htmlFor={notif.id+"notif"}
-                                                href={`/notifications/${notif.id}`}>
-                                                {/* <Link href={`/notifications/${notif.id}`} id={notif.id+"notif"} className="hidden"/> */}
-                                                <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient shrink-0">{notif.sender_name[0].toLocaleUpperCase()}</h2>
+                                                key={mail.mail_id}
+                                                href={`/mails/${mail.mail_id}`}>
+                                                {/* <Link href={`/mails/${mail.id}`} id={mail.id+"mail"} className="hidden"/> */}
+                                                <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient shrink-0">{mail.sender_name[0].toLocaleUpperCase()}</h2>
                                                 <div className="w-full flex flex-col overflow-hidden">
-                                                    <h3 className="text-md truncate w-[60%] shrink-0">{notif.title}</h3>
+                                                    <h3 className="text-md truncate w-[60%] shrink-0">{mail.subject}</h3>
                                                     <p className="text-sm h-auto truncate w-[90%]">
                                                         <span className="font-semibold">Message: </span>
-                                                        {notif.message_description}
+                                                        {mail.message_description}
                                                     </p>
                                                 </div>
                                             </Link>
@@ -143,7 +149,7 @@ function Notifications() {
                             ) : (
                                 <div className="h-full w-full flex flex-col justify-center place-items-center">
                                     <BellOffIcon scale={1} size={30} className="text-gray-500" />
-                                    <h1 className="text-xl text-center font-serif text-gray-300">There are no notifications.</h1>
+                                    <h1 className="text-xl text-center font-serif text-gray-300">There are no mails.</h1>
                                 </div>
                             )
                     }
@@ -153,4 +159,4 @@ function Notifications() {
     </>);
 }
 
-export default Notifications
+export default Messages

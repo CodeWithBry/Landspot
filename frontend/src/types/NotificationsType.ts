@@ -1,16 +1,20 @@
-type NotificationsType = {
-    id: string,
+type MailType = {
+    mail_id: string,
     user_id: string,
-    title: string,
+    agent_name: string,
+    agent_email: string,
+    subject: string,
     message_description: string,
-    sent_at: Date
-    sender_id: string
-    sender_email: string;
-    sender_name: string;
-    html: string
+    html: Date,
+    sent_at: string,
+    sender_id: string,
+    sender_email: string,
+    sender_name: string,
+    is_important: boolean,
+    is_seen: boolean
 }
 
-type SortedNotificationsType = {
+type SortedMailType = {
     label: string,
-    notifications: NotificationsType[] 
+    mails: MailType[] 
 }

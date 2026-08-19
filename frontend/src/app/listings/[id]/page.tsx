@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ChangeEvent, useEffect, useState } from "react";
 
-type Agent = { email: string, name: string };
+type Agent = { email: string, user_name: string };
 
 export default function ViewListing() {
     const { user } = useAuth();
@@ -19,29 +19,23 @@ export default function ViewListing() {
     const { handleFavoriteChange } = useFavorites();
     const [isSending, setIsSending] = useState<boolean>(false);
     const [isSent, setIsSent] = useState<boolean>(false);
-    const [message, setMessage] = useState<string>("");
     const [listing, setListing] = useState<Listing | undefined>(undefined);
-    const [agent, setAgent] = useState<Agent | null>(null);
-
-    const getAgentById = async (agent_id: string): Promise<Agent | undefined> => {
-        try {
-            const result = (await api.get(`/api/listings/get-agent/${agent_id}`)).data.data as Agent;
-            return result;
-        } catch (err) {
-            console.log(err);
-            throw err;
-        }
-    }
+    const [form, setForm] = useState<{ subject: string, message: string }>({
+        subject: "",
+        message: ""
+    })
 
     const sendMessage = async () => {
         setIsSending(true);
         try {
+            const subject = form.subject;
+            const user_id = listing?.agent_id;
+            const agent_name = listing?.agent_name;
             const agent_email = listing?.agent_email;
-            const agent_id = listing?.agent_id;
             const sender_email = user?.email;
             const sender_id = user?.id;
-            const sender_name = user?.name
-            const subject = "New buyer inquiry for your property!"
+            const sender_name = user?.user_name;
+            const message_description = form.message;
             const html = `
                 <div style="background:#f4f4f4; padding:2rem; font-family:Arial,sans-serif;">
                     <div style="max-width:560px; margin:0 auto; background:#ffffff; border-radius:8px; overflow:hidden; border:1px solid #e0e0e0;">
@@ -67,7 +61,7 @@ export default function ViewListing() {
 
                         <p style="font-size:11px; font-weight:600; color:#999; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 8px;">Message</p>
                         <div style="background:#f9f9f9; border-left:3px solid #185FA5; border-radius:0 6px 6px 0; padding:1rem 1.25rem; font-size:14px; line-height:1.7; color:#111;">
-                        ${message}
+                        ${message_description}
                         </div>
                     </div>
 
@@ -79,8 +73,8 @@ export default function ViewListing() {
                     </div>
                 </div>
                 `;
-            if (agent_id) {
-                await api.post("/api/notifications/send-mail", { subject, html, message, agent_email, agent_id, sender_email, sender_id, sender_name });
+            if (user_id) {
+                await api.post("/api/mails/send-mail", { subject, html, message_description, agent_name, agent_email, user_id, sender_email, sender_id, sender_name });
                 setIsSent(true);
             }
         } catch (error) {
@@ -104,8 +98,6 @@ export default function ViewListing() {
                 const listingResult = await getListingById(id);
                 if (listingResult) {
                     setListing(listingResult);
-                    const agentResult = await getAgentById(listingResult.agent_id);
-                    if (agentResult) setAgent(agentResult);
                 }
             } catch (error) {
                 throw error;
@@ -120,13 +112,13 @@ export default function ViewListing() {
         <div className="overflow-hidden">
             <div className="transition w-full h-full overflow-auto overflow-x-hidden relative">
                 {/* Image slide section */}
-                <div className="w-full h-[400px]">
+                <div className="w-full h-100">
                     {/* image slider */}
-                    <div className="h-[400px] flex relative overflow-hidden overflow-x-auto">
+                    <div className="h-100 flex relative overflow-hidden overflow-x-auto">
                         <Link
                             href="/"
                             className="font-serif z-1 text-xs px-3 py-1.5 cursor-pointer rounded-md bg-accent-500 text-white hover:opacity-70 active:opacity-100 absolute right-2 top-2">Back</Link>
-                        <div className="w-full h-[430px] flex overflow-x-scroll overflow-y-hidden snap-x snap-mandatory absolute translate-y-[-50%] top-[50%]">
+                        <div className="w-full h-107.5 flex overflow-x-scroll overflow-y-hidden snap-x snap-mandatory absolute translate-y-[-50%] top-[50%]">
                             {listing?.images && listing.images.map((img, idx) => {
                                 const src = idx === 0
                                     ? (img.cloudinary_url || "../dummy_apartment.png")
@@ -203,17 +195,25 @@ export default function ViewListing() {
                 <div className="*:font-serif max-w-280 w-full flex flex-col gap-2 mx-auto mb-5 px-8" >
                     <span className="text-xs text-primary-300">Contact Agent</span>
                     <div className="flex gap-2">
-                        <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient">{agent?.name[0].toLocaleUpperCase()}</h2>
+                        <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient">{listing?.agent_name ? listing.agent_name[0].toLocaleUpperCase() : "U"}</h2>
                         <div className="flex flex-col">
-                            <p className="font-semibold">{agent?.name}</p>
+                            <p className="font-semibold">{listing?.agent_name}</p>
                             <span className="text-gray-500 text-sm">{listing?.agent_email}</span>
                         </div>
                     </div>
+                    <input 
+                        type="text" 
+                        placeholder="Subject"
+                        value={form.subject}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                            setForm(prev => ({...prev, subject: e.target.value}));
+                        }}
+                        className="w-[clamp(100% - 24px)] py-2 px-3 border border-gray-600 rounded-md"/>
                     <textarea
                         className="w-[clamp(100% - 24px)] py-2 px-3 border border-gray-600 rounded-md resize-none"
                         placeholder="Description"
                         onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                            setMessage(e.target.value);
+                            setForm(prev => ({...prev, message: e.target.value}));
                             setIsSent(false);
                         }}
                         rows={5} />
@@ -233,14 +233,14 @@ export default function ViewListing() {
                     </button>
                 </div>
             </div>
-            <button
-                onClick={handleAddToFavorites}
-                title="Put this property in your favorites."
-                className="absolute bottom-5 right-5 p-3 rounded-xl text-white bg-accent-400 shadow-lg transition cursor-pointer hover:opacity-80 active:opacity-90">
-                <Heart
-                    size={25}
-                    fill={listing?.isFavorite ? "white" : "transparent"} />
-            </button>
+                <button
+                    onClick={handleAddToFavorites}
+                    title="Put this property in your favorites."
+                    className="absolute bottom-5 right-5 p-3 rounded-xl text-white bg-accent-400 shadow-lg transition cursor-pointer hover:opacity-80 active:opacity-90">
+                    <Heart
+                        size={25}
+                        fill={listing?.isFavorite ? "white" : "transparent"} />
+                </button>
         </div>
     </>;
 }

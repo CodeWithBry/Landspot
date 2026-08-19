@@ -57,7 +57,7 @@ export const login = async (req: Request, res: Response) => {
 
         const token = signToken({ userId: user.id, role: user.role });
         sendResponse(res, {
-            user: { id: user.id, name: user.user_name, email: user.email, role: user.role },
+            user,
             token
         });
     } catch (error) {

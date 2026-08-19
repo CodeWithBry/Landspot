@@ -7,7 +7,7 @@
     --color-border: #E2E8F0;
     --color-border-strong: #CBD5E1;
     --color-text-primary: #0F172A;
-    --color-semi-transparent: #0000006c;
+    --color-semi-transparent: rgba(235, 235, 235, 0.553);
     --color-text-secondary: #475569;
     --color-text-muted: #94A3B8;
     --color-primary-50: #EEF2FF;
@@ -51,7 +51,7 @@
     --tracking-wide: 0.08em;
     --tracking-widest: 0.2em;
     /* ─── Core Palette ─── */
-    --color-semi-transparent: #0000006c;
+    --color-semi-transparent: var(--color-semi-transparent);
     --color-bg: #F8FAFC;
     --color-surface: #FFFFFF;
     --color-surface-alt: #F1F5F9;
@@ -154,10 +154,10 @@
 
 @layer utilities {
     .btn {
-        @apply md:text-m cursor-pointer text-sm rounded-md px-4 py-2 flex place-items-center gap-2 transition font-serif hover:opacity-70 active:opacity-90
+        @apply cursor-pointer rounded-md px-4 py-2 flex place-items-center gap-2 transition font-serif hover:opacity-70 active:opacity-90
     }
 }
-
+ 
 .leaflet-control-zoom {
     display: none;
 }
