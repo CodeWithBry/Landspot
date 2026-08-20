@@ -88,7 +88,7 @@ export default function ViewListing() {
     const handleAddToFavorites = async () => {
         if (user && listing) {
             setListing(prev => prev ? ({ ...prev, isFavorite: !prev.isFavorite }) : prev);
-            await handleFavoriteChange(user?.id, listing, listing?.isFavorite ? true : false);
+            await handleFavoriteChange(listing, listing?.isFavorite);
         }
     }
 
