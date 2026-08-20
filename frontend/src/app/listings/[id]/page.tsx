@@ -87,8 +87,8 @@ export default function ViewListing() {
 
     const handleAddToFavorites = async () => {
         if (user && listing) {
-            setListing(prev => prev ? ({ ...prev, isFavorite: !prev.isFavorite }) : prev);
-            await handleFavoriteChange(listing, listing?.isFavorite);
+            setListing(prev => prev ? ({ ...prev, is_favorite: !prev.is_favorite }) : prev);
+            await handleFavoriteChange(listing, listing?.is_favorite);
         }
     }
 
@@ -239,7 +239,7 @@ export default function ViewListing() {
                     className="absolute bottom-5 right-5 p-3 rounded-xl text-white bg-accent-400 shadow-lg transition cursor-pointer hover:opacity-80 active:opacity-90">
                     <Heart
                         size={25}
-                        fill={listing?.isFavorite ? "white" : "transparent"} />
+                        fill={listing?.is_favorite ? "white" : "transparent"} />
                 </button>
         </div>
     </>;
