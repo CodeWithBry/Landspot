@@ -196,7 +196,12 @@ export const loadListingInitially = async (req: Request, res: Response) => {
                         ORDER BY li.display_order
                     ) FILTER (WHERE li.id IS NOT NULL),
                     '[]'
-                ) AS images
+                ) AS images,
+                EXISTS (
+                    SELECT 1 
+                    FROM favorites f 
+                    WHERE f.listing_id = l.id AND f.user_id = $9
+                ) AS is_favorite
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
             GROUP BY l.id
