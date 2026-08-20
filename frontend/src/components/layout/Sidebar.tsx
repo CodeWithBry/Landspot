@@ -16,7 +16,7 @@ type Tab = {
 }
 
 export function Sidebar() {
-    const { showMenu, setShowMenu, path } = useContext(navContext) as NavigationContextType;
+    const { showMenu, setShowMenu, unseenMailsLength, setUnseenMailsLength, path } = useContext(navContext) as NavigationContextType;
     const { user, logout } = useAuth();
     const { getUnseenEmailsLength } = useMails();
     const userMenuRef = useRef<HTMLDivElement | null>(null);
@@ -29,23 +29,17 @@ export function Sidebar() {
         { tabName: "Mails", tabPath: "/mails", icon: Mail },
     ];
     const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
-    const [unseenNotifs, setUnseenNotifs] = useState<number>(0);
 
     useClickOutside(userMenuRef, () => showUserMenu ? setShowUserMenu(false) : null);
-
+    
     useEffect(() => {
-        if (user?.id) {
-            getUnseenEmailsLength(user.id)
-                .then((res) => {
-                    if (typeof res == "number") setUnseenNotifs(res);
-                }).catch((error) => { throw error })
-        }
-    }, [user?.id])
+        if(getUnseenEmailsLength) getUnseenEmailsLength(setUnseenMailsLength);
+    }, [getUnseenEmailsLength])
 
     return (
         <div
             className={`${showMenu ? "md:w-fit w-full absolute" : !isAuthPath ? "w-fit md:relative md:flex hidden" : "relative w-0 "} md:relative h-full bg-semi-transparent z-1 flex`}>
-            <div className={`${showMenu ? "w-60 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2 md:left-0 right-full" : "opacity-0 z-0 w-0 border-r-0"} h-full md:relative overflow z-1 flex flex-col justify-between border-r-gray-400 bg-white`}>
+            <div className={`${showMenu ? "w-80 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2 md:left-0 right-full" : "opacity-0 z-0 w-0 border-r-0"} h-full md:relative overflow z-1 flex flex-col justify-between border-r-gray-400 bg-white`}>
                 <div className="flex flex-col gap-5 h-full">
                     <h3 className={`flex text-xl font-serif font-bold mt-5 place-items-center  justify-between ${showMenu ? "text-primary-300" : "bg-primary-300 text-white justify-center place-items-center rounded-md"}`}>
                         {showMenu ? "Landspot" : "L"}
@@ -68,16 +62,15 @@ export function Sidebar() {
                                         {showMenu ? tab.tabName : ""}
 
                                         {
-                                            tab.tabName == "Notifications" && unseenNotifs > 0 &&
+                                            tab.tabName == "Mails" && unseenMailsLength > 0 &&
                                             <span className={`font-serif text-white bg-red-700 flex justify-center items-center rounded-full ${showMenu ? "text-sm ml-auto w-6 h-6" : "absolute top-0 right-0 text-2xs w-3 h-3"}`} >
-                                                {unseenNotifs}
+                                                {unseenMailsLength}
                                             </span>
                                         }
                                     </Link>
                                 </li>
 
-                                if ((user?.role == "agent" && tab.tabName == "Favorites")) return null;
-                                else if ((user?.role == "buyer" && tab.tabName == "Dashboard")) return null;
+                                if ((user?.role == "buyer" && tab.tabName == "Dashboard")) return null;
                                 else return element;
                             })}
                         </div>

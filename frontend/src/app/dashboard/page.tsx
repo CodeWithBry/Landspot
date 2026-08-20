@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useListing } from "@/hooks/useListings"
 import { Listing } from "@/types/ListingType";
 import { NavigationContextType } from "@/types/NavigationContextType";
-import { List, Menu, X } from "lucide-react";
+import { List, Menu, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { UIEvent, use, useContext, useEffect, useRef, useState } from "react";
 
@@ -75,7 +75,7 @@ export default function Dashboard() {
             <div
                 className="max-w-300 w-full h-full flex flex-col mx-5">
                 <header className="flex justify-between items-center md:my-10 my-5">
-                    <h2 className="text-black font-serif sm:text-2xl text-md font-bold flex sm:gap-2 gap-0.5 place-items-center">
+                    <h2 className="text-black font-serif sm:text-2xl text-lg font-bold flex sm:gap-2 gap-2 place-items-center">
                         <button
                             onClick={() => setShowMenu(prev => !prev)}
                             className='sm:p-3 p-1 rounded-full transition cursor-pointer  hover:bg-accent-400 hover:text-white'>
@@ -85,11 +85,14 @@ export default function Dashboard() {
                         </button>
                         <span>Dashboard Listings</span>
                     </h2>
-                    <Link href={`/dashboard/listings/new/`} className="btn text-white sm:text-lg text-xs bg-accent-400 hover:bg-accent-500">Create Listing</Link>
+                    <Link href={`/dashboard/listings/new/`} className="btn text-white sm:text-lg text-xs bg-accent-400 hover:bg-accent-500">
+                            <Plus size={20} scale={1}/>
+                            <span className="sm:block hidden">Create Listing</span>
+                    </Link>
                 </header>
 
                 <div
-                    className="w-[90%] px-2 pb-5 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2"
+                    className="w-full py-2 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] px-2 h-full relative overflow-x-hidden mx-auto flex flex-col gap-2"
                     onScroll={handleFetchOnScroll} >
                     {
                         isMyListingLoading ?

@@ -72,11 +72,11 @@ export default function page() {
                     <MapView onBoundsChange={onBoundsChange} listings={listings} />
                 </div>
             </div>
-            <div className="md:w-50% md:py-0 py-4 w-full h-full flex md:items-center align-middle justify-center">
+            <div className="md:w-50% md:py-0 py-4 mx-4 w-full h-full flex md:items-center align-middle justify-center">
                 <div className="w-fit h-fit flex flex-col gap-4">
                     <div className="flex-col flex gap-1 mb-10">
-                        <h1 className="font-bold text-3xl w-full text-left text-nowrap font-serif">Welcome Back Landers!</h1>
-                        <p className="font-serif text-text-muted">Please enter your account details.</p>
+                        <h1 className="font-bold text-3xl w-full text-center font-serif">Welcome Back Landers!</h1>
+                        <p className="font-serif text-center text-text-muted">Please enter your account details.</p>
                     </div>
 
                     <label className="flex flex-col gap-1">

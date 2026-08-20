@@ -154,7 +154,7 @@ function EditListing() {
             <form
                 onSubmit={handleSubmit}
                 className="min-w-70 w-full h-full flex flex-col mx-5 mt-5 ">
-                <h2 className="text-black font-serif text-2xl font-bold flex gap-2 place-items-center sticky top-0 z-1 bg-white py-2">
+                <h2 className="text-black font-serif sm:text-2xl text-lg font-bold flex gap-2 place-items-center sticky top-0 z-1 bg-white py-2">
                     <button
                         onClick={() => setShowMenu(prev => !prev)}
                         className='p-3 rounded-full transition cursor-pointer hover:bg-accent-400 hover:text-white'>
@@ -165,7 +165,7 @@ function EditListing() {
                     <span>Edit Listings</span>
                     <Link
                         href={"/dashboard"}
-                        className='flex place-items-center gap-1 rounded-md ml-auto p-3 text-sm transition cursor-pointer  bg-accent-400 text-white hover:opacity-70 active:opacity-90'>
+                        className='flex place-items-center gap-1 rounded-md ml-auto p-3 sm:text-sm text-xs  transition cursor-pointer bg-accent-400 text-white hover:opacity-70 active:opacity-90'>
                         Cancel
                     </Link>
                     <button

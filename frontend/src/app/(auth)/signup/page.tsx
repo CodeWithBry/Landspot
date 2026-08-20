@@ -133,6 +133,7 @@ export default function Singup() {
 
   return (
     <section className="w-full h-dvh grid grid-cols-1 items-center relative">
+      {/* error wrapper */}
       {(failedToCreateAccount || loadingAuth) && <div className="absolute z-2 w-full h-full top-0 left-0 bg-semi-transparent flex place-items-center justify-center">
         {
           loadingAuth ?
@@ -145,6 +146,8 @@ export default function Singup() {
             </div>
         }
       </div>}
+
+      {/* Contents */}
       <div className="w-full h-full overflow-hidden overflow-y-auto flex align-middle justify-center bg-transparent">
         <div className="w-fit h-fit flex flex-col gap-4 bg-[rgba(255,255,255,0.9)] px-7 py-5 ">
           <div className="flex-col flex gap-1 mb-5">

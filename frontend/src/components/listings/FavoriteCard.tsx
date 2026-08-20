@@ -31,19 +31,19 @@ function FavoriteCard({ listing, deleteFromListing }: Props) {
                     style={{ ...imageStyle }} />
             </div>
             <div className="w-full lg:max-w-[calc(98%_-_240px)] max-w-[95%] mx-auto md:max-h-50 h-full flex justify-center place-items-center">
-                <div className="w-full h-[90%] flex flex-col gap-2 max-w-full">
+                <div className="w-[98%] h-[90%] flex flex-col gap-2 max-w-full">
                     <div className="flex justify-between font-serif">
                         <h1 className="text-xl font-bold truncate w-[60%]">
                             {listing.title}
                         </h1>
-                        <h1 className="text-xl font-bold">₱ {(listing?.price ? Math.floor(listing.price / 1) : 0).toLocaleString("en-US")} </h1>
+                        <h1 className="text-xl font-bold break-all">₱ {(listing?.price ? Math.floor(listing.price / 1) : 0).toLocaleString("en-US")} </h1>
                     </div>
                     <div className="flex justify-between place-items-start font-serif ">
                         <span className="flex place-items-center text-sm w-3/4 gap-2">
                             <MapPin size={16} />
                             <span className="truncate text-xs">{listing.address}</span>
                         </span>
-                        <span className="text-2xs">Listing Price</span>
+                        <span className="text-2xs text-wrap ">Listing Price</span>
                     </div>
 
                     <div className="border-t-2 border-gray-300 py-2 flex flex-col gap-2 mt-auto">
@@ -52,13 +52,13 @@ function FavoriteCard({ listing, deleteFromListing }: Props) {
                                 href={`/listings/${listing.id}`}
                                 className="btn bg-accent-400 text-white text-md">
                                 <Eye size={16} />
-                                <span>View Listing</span>
+                                <span className="sm:block hidden">View Listing</span>
                             </Link>
                             <Link
                                 href={`/?id=${listing.id}`}
                                 className="btn bg-gray-200 text-gray-900 text-md">
                                 <Map size={16} />
-                                <span>See on map</span>
+                                <span className="sm:block hidden">See on map</span>
                             </Link>
                         </div>
                         <div className="flex justify-between pb-2">

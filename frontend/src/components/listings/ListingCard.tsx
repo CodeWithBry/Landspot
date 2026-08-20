@@ -26,7 +26,7 @@ function ListingCard({ listing, setListingResult }: Props) {
                             return list
                         }) : prev
                 })
-                handleFavoriteChange(user?.id, listing, listing.isFavorite)
+                handleFavoriteChange(listing, listing.isFavorite)
             }
         } catch (error) {
             console.log(error);
@@ -43,7 +43,7 @@ function ListingCard({ listing, setListingResult }: Props) {
                     style={{ ...imageStyle }} />
             </div>
             <div className="w-full mx-auto pb-3 h-full flex justify-center place-items-center">
-                <div className="w-[90%] h-[90%] flex flex-col">
+                <div className="w-[95%] h-[90%] flex flex-col">
                     <div className="flex justify-between font-serif">
                         <h1 className="text-xl font-bold truncate w-[60%]">{listing.title}</h1>
                         <h1 className="text-xl font-bold text-nowrap">₱ {(listing?.price ? Math.floor(listing.price / 1) : 0).toLocaleString("en-US")} </h1>

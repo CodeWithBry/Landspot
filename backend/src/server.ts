@@ -9,7 +9,7 @@ async function start() {
         const firstQuery = await pool.query('SELECT 1');
         app.get('/test', async (req, res) => res.json({ mess: 'THIS IS A MESSAGE!' }))
         app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`)
+        console.log(process.env.FRONTEND_URL)
         })
     } catch (err) {
         console.error('Failed to connect to database:', err)

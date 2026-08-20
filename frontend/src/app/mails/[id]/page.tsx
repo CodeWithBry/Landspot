@@ -1,6 +1,6 @@
 "use client"
-import SwitchButton from '@/components/ui/SwitchButton';
 import { navContext } from '@/context/NavigationProvider';
+import { useMails } from '@/hooks/useMail';
 import { api } from '@/lib/api';
 import { NavigationContextType } from '@/types/NavigationContextType';
 import { Menu, MoveLeft, X } from 'lucide-react';
@@ -9,19 +9,33 @@ import { useParams } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react'
 
 function MessagePreview() {
+  const { setShowMenu, showMenu, setUnseenMailsLength } = useContext(navContext) as NavigationContextType;
   const { id } = useParams<{ id: string }>();
-  const { setShowMenu, showMenu } = useContext(navContext) as NavigationContextType;
+  const { handleIsSeenOnOpen } = useMails();
   const [mail, setMail] = useState<MailType | null>(null);
 
   useEffect(() => {
-    if (id != "") {
-      api.get(`/api/mails/get-mail-by-id/${id}`)
-        .then((res) => {
-          const data = res.data.data;
-          setMail({ ...data });
-        }).catch(e => { throw e });
-    }
-  }, [id])
+    if (!id) return;
+
+    const fetchMail = async () => {
+      try {
+        const res = await api.get(`/api/mails/get-mail-by-id/${id}`);
+        const fetchedMail: MailType = res.data.data;
+
+        if (fetchedMail.is_seen) {
+          setMail(fetchedMail);
+        } else {
+          const updatedMail = await handleIsSeenOnOpen(id, setUnseenMailsLength);
+          console.log(updatedMail)
+          setMail(updatedMail ?? fetchedMail);
+        }
+      } catch (error) {
+        console.error("Failed to fetch mail:", error);
+      }
+    };
+
+    fetchMail();
+  }, [id]);
 
   return (
     <section className="w-full h-full relative flex justify-center overflow-x-hidden overflow-y-scroll z-0 font-serif">

@@ -6,7 +6,6 @@ import { pool } from "../db";
 
 export async function getFavorites(req: Request, res: Response) {
     try {
-        const { user_id } = req.body;
         const query = `
             SELECT 
                 l.id,
@@ -36,9 +35,10 @@ export async function getFavorites(req: Request, res: Response) {
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
             JOIN favorites f ON f.user_id = $1
+            WHERE li.listing_id = f.listing_id
             GROUP BY l.id;
         `
-        const result = await pool.query(query, [user_id]);
+        const result = await pool.query(query, [req.user!.userId]);
         sendResponse(res, result.rows);
     } catch (error) {
         console.log(error);
@@ -48,13 +48,12 @@ export async function getFavorites(req: Request, res: Response) {
 
 export async function addFavorite(req: Request, res: Response) {
     try {
-        const { user_id, listing } = req.body;
+        const { listing_id } = req.params;
         const query = `
             INSERT INTO favorites (user_id, listing_id) 
             VALUES ($1, $2)
-        `
-        console.log("Query Successfuly executed.")
-        await pool.query(query, [user_id, listing.id]);
+        `;
+        await pool.query(query, [req.user!.userId, listing_id]);
     } catch (error) {
         console.log(error);
         if (error instanceof Error) sendError(res, error.message);
@@ -63,11 +62,11 @@ export async function addFavorite(req: Request, res: Response) {
 
 export async function removeFavorite(req: Request, res: Response) {
     try {
-        const { user_id, listing } = req.body;
+        const { listing_id } = req.params;
         const query = `
             DELETE FROM favorites WHERE user_id = $1 AND listing_id = $2
         `
-        await pool.query(query, [user_id, listing.id]);
+        await pool.query(query, [req.user!.userId, listing_id]);
     } catch (error) {
         console.log(error);
         if (error instanceof Error) sendError(res, error.message);

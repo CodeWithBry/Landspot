@@ -7,8 +7,9 @@ export const navContext = createContext<NavigationContextType | null>(null);
 export function NavigationProvider ({children}: {children: ReactNode}) {
     const path = usePathname();
     const [showMenu, setShowMenu] = useState<boolean>(false);
+    const [unseenMailsLength, setUnseenMailsLength] = useState<number>(0);
 
-    return <navContext.Provider value={{showMenu, setShowMenu, path}}>
+    return <navContext.Provider value={{showMenu, setShowMenu, unseenMailsLength, setUnseenMailsLength, path}}>
         {children}
     </navContext.Provider>
 }

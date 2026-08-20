@@ -9,7 +9,7 @@ import { BellOffIcon, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 function Messages() {
-    const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
+    const { showMenu, setShowMenu, setUnseenMailsLength } = useContext(navContext) as NavigationContextType;
     const { user } = useAuth();
     const { getMails } = useMails();
     const [mails, setMails] = useState<MailType[]>([]);
@@ -20,7 +20,7 @@ function Messages() {
         setIsFetching(true);
         try {
             if (user?.id) {
-                const result = await getMails();
+                const result = await getMails(setUnseenMailsLength);
                 if (result?.length) setMails([...result]);
             }
         } catch (error) {
@@ -130,7 +130,7 @@ function Messages() {
                                         <h3 className="text-md text-black font-bold">{group.label}</h3>
                                         {group.mails.map((mail) => {
                                             return <Link
-                                                className="flex gap-2 w-full max-h-20 py-2 shadow-md px-3 rounded-md hover:bg-gray-200 transition-all cursor-pointer"
+                                                className={`flex gap-2 w-full max-h-20 py-2 relative shadow-md px-3 rounded-md hover:bg-gray-200 transition-all cursor-pointer ${!mail.is_seen && "*:font-bold"}`}
                                                 key={mail.mail_id}
                                                 href={`/mails/${mail.mail_id}`}>
                                                 {/* <Link href={`/mails/${mail.id}`} id={mail.id+"mail"} className="hidden"/> */}
@@ -138,10 +138,11 @@ function Messages() {
                                                 <div className="w-full flex flex-col overflow-hidden">
                                                     <h3 className="text-md truncate w-[60%] shrink-0">{mail.subject}</h3>
                                                     <p className="text-sm h-auto truncate w-[90%]">
-                                                        <span className="font-semibold">Message: </span>
+                                                        <span className="">Message: </span>
                                                         {mail.message_description}
                                                     </p>
                                                 </div>
+                                                {!mail.is_seen && <div className="w-2 h-2 absolute top-2 right-2 rounded-full bg-red-600" />}
                                             </Link>
                                         })}
                                     </div>

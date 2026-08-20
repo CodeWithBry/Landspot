@@ -23,14 +23,14 @@ export function useFavorites() {
   //     setFavoriteIds(prev => { const s = new Set(prev); s.delete(listingId); return s })
   //     setFavorites(prev => prev.filter(l => l.id !== listingId))
   //   } else {
-  //     await api.post('/api/favorites', { listingId })
+  //     await api.get('/api/favorites', { listingId })
   //     setFavoriteIds(prev => new Set(prev).add(listingId))
   //   }
   // }
 
   const getFavorites = async () => {
     try {
-      const results = await api.post("/api/favorites/get-favorites", { user_id: user?.id });
+      const results = await api.get("/api/favorites/get-favorites");
       if (results.data.data) {
         setFavorites(results.data.data);
       }
@@ -40,10 +40,10 @@ export function useFavorites() {
     }
   }
 
-  const handleFavoriteChange = async (user_id: string, listing: Listing, isFavorite: boolean | undefined) => {
-    const url = isFavorite ? "/api/favorites/remove" : "/api/favorites/add";
+  const handleFavoriteChange = async (listing: Listing, isFavorite: boolean | undefined) => {
+    const url = isFavorite ? "/api/favorites/remove/" : "/api/favorites/add/";
     try {
-      await api.post(url, { user_id, listing });
+      await api.get(url+listing.id);
     } catch (error) {
       console.log(error);
       throw error;

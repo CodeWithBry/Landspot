@@ -35,7 +35,7 @@ export default function Favorites() {
     return <>
         <div className="w-full h-full relative flex justify-center">
             <div className="max-w-300 w-full h-full flex flex-col mx-5">
-                <header className="flex justify-between items-center my-10">
+                <header className="flex justify-between items-center sm:my-10 my-5 mx-2">
                     <h2 className="text-black font-serif text-2xl font-bold flex gap-2 place-items-center">
                         <button
                             onClick={() => setShowMenu(prev => !prev)}
@@ -46,10 +46,13 @@ export default function Favorites() {
                         </button>
                         <span>Favorites</span>
                     </h2>
-                    <Link href={`/`} className="btn text-white flex place-items-center bg-accent-400 hover:bg-accent-500"> <Plus size={18} /> Add Favorite</Link>
+                    <Link href={`/`} className="btn text-white flex place-items-center bg-accent-400 hover:bg-accent-500">
+                        <Plus size={18} />
+                        <span className="sm:block hidden">Add Favorite</span>
+                    </Link>
                 </header>
 
-                <div className="w-[90%] h-full relative overflow-x-hidden mx-auto flex flex-col gap-2 mb-5">
+                <div className="w-full h-full relative overflow-x-hidden mx-auto flex flex-col gap-2 mb-5">
                     {
                         isFetching ?
                             Array.from({ length: 5 }).map((_) => <ListingSkeleton />) :

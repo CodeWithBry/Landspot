@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMailById, getMails, getUnseenMailsLength } from "../controllers/mails.controller";
+import { getMailById, getMails, getUnseenMailsLength, seenMail } from "../controllers/mails.controller";
 import { sendMail } from "../controllers/mails.controller"
 import { requireAuth } from "../middleware/auth.middleware";
 const router = Router();
@@ -7,7 +7,8 @@ const router = Router();
 
 router.post("/send-mail", requireAuth, sendMail);
 router.get("/get-mails", requireAuth, getMails);
-router.get("/get-mail-by-id/:mail_id", getMailById);
+router.get("/get-mail-by-id/:mail_id", requireAuth, getMailById);
+router.get("/seen-mail/:mail_id", requireAuth, seenMail)
 router.get("/unseen-mails-length", requireAuth, getUnseenMailsLength);
 // router.delete("/delete-mail", );
 

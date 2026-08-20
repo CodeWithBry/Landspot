@@ -19,13 +19,13 @@ function MyListingCard({ listing, deleteFromListing }: { listing: Listing, delet
   }
 
   return (
-    <div className="lg:flex-row flex flex-col gap-2 w-full px-5 py-3 my-2 text-serif rounded-xl shadow-sm bg-white">
+    <div className="lg:flex-row flex flex-col gap-2 sm:w-[90%] w-full px-5 py-3 mx-auto my-2 text-serif rounded-xl shadow-sm bg-white">
       <div className="lg:w-30 lg:h-30 w-full h-70 shrink-0 rounded-2xl flex justify-center place-items-center">
         <div
           className={`lg:w-full lg:h-full w-full h-70 rounded-md`}
           style={{ ...imageStyle }} />
       </div>
-      <div className="lg:flex-row flex flex-col w-full gap-2">
+      <div className="lg:flex-row flex flex-col w-full gap-3">
         <div className="flex flex-col gap-1 flex-1">
           <h2 className="font-serif text-black font-bold text-xl">{listing.title}</h2>
           <p>{listing.address}</p>
