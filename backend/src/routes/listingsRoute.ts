@@ -6,7 +6,7 @@ import { requireAuth } from "../middleware/auth.middleware";
 const router = Router();
 
 router.post("/get-listings", getListings); // listings 
-router.post("/get-listing-by-id", getListingById); // single-list
+router.post("/get-listing-by-id", requireAuth, getListingById); // single-list
 router.post("/add-listing", requireAuth, requireRole('agent'), createNewListing);
 router.post("/my-listing", getAgentListing); 
 router.post("/test-address", testAddress);
