@@ -22,11 +22,11 @@ function ListingCard({ listing, setListingResult }: Props) {
                 setListingResult(prev => {
                     return prev ?
                         prev.map((list) => {
-                            if (list.id === listing_id) return { ...list, isFavorite: !list.isFavorite }
+                            if (list.id === listing_id) return { ...list, is_favorite: !list.is_favorite }
                             return list
                         }) : prev
                 })
-                handleFavoriteChange(listing, listing.isFavorite)
+                handleFavoriteChange(listing, listing.is_favorite)
             }
         } catch (error) {
             console.log(error);
@@ -84,7 +84,7 @@ function ListingCard({ listing, setListingResult }: Props) {
                             <button
                                 onClick={() => addToFavorite(listing.id)}
                                 className={`btn ml-auto bg-accent-400 text-white [1400px]:text-md text-sm`}>
-                                {listing.isFavorite ? <Heart fill="white" /> : <Heart />}
+                                {listing.is_favorite ? <Heart fill="white" /> : <Heart />}
                                 <span className="md:block hidden">Add to favorites</span>
                             </button>
                         </div>
