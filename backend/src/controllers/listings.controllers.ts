@@ -94,7 +94,7 @@ export const getListingById = async (req: Request, res: Response) => {
             EXISTS (
                 SELECT 1 
                 FROM favorites f 
-                WHERE f.listing_id = l.id AND f.user_id = $9
+                WHERE f.listing_id = l.id AND f.user_id = $2
             ) AS is_favorite
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
@@ -115,7 +115,7 @@ export const getListingById = async (req: Request, res: Response) => {
                      l.status, 
                      l.created_at, 
                      u.email;`;
-        const result = await pool.query(query, [listing_id]);
+        const result = await pool.query(query, [listing_id, req.user!.userId]);
         const checkIfInFavorites = await pool.query(`SELECT * FROM favorites WHERE listing_id = $1 AND user_id = $2`, [result.rows[0].id, user_id])
         const data = [{ ...result.rows[0], agent_email: result.rows[0].email, isFavorite: checkIfInFavorites.rows[0] ? true : false }]
         sendResponse(res, data);
@@ -205,7 +205,7 @@ export const loadListingInitially = async (req: Request, res: Response) => {
                 EXISTS (
                     SELECT 1 
                     FROM favorites f 
-                    WHERE f.listing_id = l.id AND f.user_id = $9
+                    WHERE f.listing_id = l.id AND f.user_id = $1
                 ) AS is_favorite
             FROM listings l
             LEFT JOIN listing_images li ON li.listing_id = l.id
@@ -213,7 +213,7 @@ export const loadListingInitially = async (req: Request, res: Response) => {
             ORDER BY l.created_at DESC
             LIMIT 10;
         `;
-        const result = await pool.query(query);
+        const result = await pool.query(query, [req.user!.userId]);
         sendResponse(res, [...result.rows]);
     } catch (err) {
         if (err instanceof Error) sendError(res, err.message);
@@ -283,7 +283,7 @@ export const loadListings = async (req: Request, res: Response) => {
             ORDER BY l.created_at DESC
             LIMIT 10;
         `;
-        const result = await pool.query(query, [property_type, min_price, max_price, bedrooms, bathrooms, status, search_value, last_item?.created_at]);
+        const result = await pool.query(query, [property_type, min_price, max_price, bedrooms, bathrooms, status, search_value, last_item?.created_at, req.user!.userId]);
         console.log(result.rows, search_value)
         sendResponse(res, [...result.rows]);
     } catch (err) {
