@@ -1,37 +1,30 @@
-import { type UseListingType } from "@/hooks/useListings";
+'use client'
+import { useFavorites } from "@/hooks/useFavorites";
 import { Listing } from "@/types/ListingType"
 import { Bookmark, Eye, Map, MapPin } from "lucide-react";
 import Link from "next/link";
-import { Dispatch, SetStateAction } from "react";
+import { useEffect } from "react";
 
-type Props = { listing: Listing, deleteFromListing?: UseListingType["deleteFromListing"]}
+type Props = { listing: Listing, handleRemoveFavorite: (listing: Listing) => void }
 
-function FavoriteCard({ listing, deleteFromListing }: Props) {
+function FavoriteCard({ listing, handleRemoveFavorite }: Props) {
     const imageStyle = {
         backgroundImage: `url("${listing?.images && listing.images[0]?.cloudinary_url ? listing.images[0].cloudinary_url : "./dummy_apartment.png"}")`,
         backgroundPosition: "center",
         backgroundSize: "cover"
     }
 
-    async function handleDelete(id: string) {
-        try {
-            if (deleteFromListing) deleteFromListing(id, listing.agent_id);
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
-    }
-
     return (
-        <div className="w-[90%] flex lg:flex-row flex-col lg:h-50 h-fit mx-auto mt-2 overflow-hidden rounded-md shadow-sm shrink-0">
-            <div className="relative lg:w-60 w-full shrink-0">
+        <div 
+            className="w-[95%] flex lg:flex-row flex-col lg:h-50 h-fit mx-auto mt-2 overflow-hidden rounded-md shadow-sm shrink-0">
+            <div className="relative lg:w-80 w-full">
                 <span className="absolute top-2 left-2 bg-accent-500 rounded-xl p-3 py-1.5 text-sm font-serif text-white">{listing.property_type.toUpperCase()}</span>
                 <div
-                    className={`lg:w-full lg:h-full w-full h-70 shrink-0`}
+                    className={`lg:w-full lg:h-full md:w-full w-full h-70`}
                     style={{ ...imageStyle }} />
             </div>
-            <div className="w-full lg:max-w-[calc(98%_-_240px)] max-w-[95%] mx-auto md:max-h-50 h-full flex justify-center place-items-center">
-                <div className="w-[98%] h-[90%] flex flex-col gap-2 max-w-full">
+            <div className="w-full max-w-[95%] mx-auto md:max-h-50 h-full flex justify-center place-items-center">
+                <div className="w-[95%] h-[90%] flex flex-col gap-2 max-w-full">
                     <div className="flex justify-between font-serif">
                         <h1 className="text-xl font-bold truncate w-[60%]">
                             {listing.title}
@@ -70,7 +63,9 @@ function FavoriteCard({ listing, deleteFromListing }: Props) {
                                     day: 'numeric'
                                 })}
                             </p>
-                            <button className="btn border-2 border-red-600 bg-gray-200 text-red-600 text-md">
+                            <button
+                                className="btn border-2 border-red-600 bg-gray-200 text-red-600 text-md"
+                                onClick={() => handleRemoveFavorite(listing)}>
                                 <Map size={16} />
                                 <span>Remove</span>
                             </button>

@@ -15,5 +15,8 @@ export type FilterBoxProps = {
     setFilterOptions: Dispatch<SetStateAction<FilterOptions>>;
     showFilterBox: boolean;
     setShowFilterBox: Dispatch<SetStateAction<boolean>>;
+    applyFilter: boolean,
     setApplyFilter: Dispatch<SetStateAction<boolean>>;
+    setIslastItem: Dispatch<SetStateAction<boolean>>
+    filterListings: (filterOptions: FilterOptions) => void
 }

@@ -5,7 +5,6 @@ import { useAuth } from './useAuth'
 
 export function useFavorites() {
   const { user } = useAuth();
-  const [favorites, setFavorites] = useState<Listing[]>([])
   // const [loading, setLoading] = useState(true)
 
   // useEffect(() => {
@@ -28,11 +27,11 @@ export function useFavorites() {
   //   }
   // }
 
-  const getFavorites = async () => {
+  const getFavorites = async (listing: Listing | null): Promise<Listing[] | undefined> => {
     try {
-      const results = await api.get("/api/favorites/get-favorites");
+      const results = await api.post("/api/favorites/get-favorites", {last_item: listing});
       if (results.data.data) {
-        setFavorites(results.data.data);
+        return results.data.data as Listing[]
       }
     } catch (error) {
       console.log(error);
@@ -40,15 +39,17 @@ export function useFavorites() {
     }
   }
 
-  const handleFavoriteChange = async (listing: Listing, isFavorite: boolean | undefined) => {
-    const url = isFavorite ? "/api/favorites/remove/" : "/api/favorites/add/";
+  const handleFavoriteChange = async (listing: Listing, isFavorite: boolean | undefined): Promise<string | undefined> => {
+    const url = isFavorite ? "/api/favorites/add/" : "/api/favorites/remove/";
     try {
-      await api.get(url+listing.id);
+      const response = await api.get(url+listing.id);
+      const message = response.data.data as string;
+      return message;
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  return { favorites, getFavorites, handleFavoriteChange };
+  return { getFavorites, handleFavoriteChange };
 }

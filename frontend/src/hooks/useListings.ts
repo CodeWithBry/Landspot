@@ -68,7 +68,7 @@ export function useListing(): UseListingType {
     try {
       console.log(search_value)
       const res = await api.post('/api/listings/load-listings', { ...filterOptions, search_value, last_item });
-      return [...res.data.data];
+      return res.data.data;
     } catch (error) {
       console.log(error)
       throw error

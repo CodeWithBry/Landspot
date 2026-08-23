@@ -19,14 +19,18 @@ function ListingCard({ listing, setListingResult }: Props) {
     async function addToFavorite(listing_id: string) {
         try {
             if (user?.id) {
+                const message = await handleFavoriteChange(listing, !listing.is_favorite);
+                console.log(message);
                 setListingResult(prev => {
                     return prev ?
                         prev.map((list) => {
-                            if (list.id === listing_id) return { ...list, is_favorite: !list.is_favorite }
+                            if (list.id === listing_id) {
+                                console.log(!list.is_favorite)
+                                return { ...list, is_favorite: !list.is_favorite };
+                            }
                             return list
                         }) : prev
                 })
-                handleFavoriteChange(listing, listing.is_favorite)
             }
         } catch (error) {
             console.log(error);

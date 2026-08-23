@@ -1,4 +1,5 @@
 "use client"
+import Mail from "@/components/mail/Mail";
 import ListingSkeleton from "@/components/skeleton/ListingSkeleton";
 import SwitchButton from "@/components/ui/SwitchButton";
 import { navContext } from "@/context/NavigationProvider";
@@ -12,9 +13,11 @@ function Messages() {
     const { showMenu, setShowMenu, setUnseenMailsLength } = useContext(navContext) as NavigationContextType;
     const { user } = useAuth();
     const { getMails } = useMails();
+    const [isFetching, setIsFetching] = useState<boolean>(false);
+    const [showOnlyUnread, setShowOnlyUnread] = useState<boolean>(false);
     const [mails, setMails] = useState<MailType[]>([]);
     const [sortedMails, setSortedMails] = useState<SortedMailType[]>([]);
-    const [isFetching, setIsFetching] = useState<boolean>(false);
+    const [unreadMails, setUnreadMails] = useState<SortedMailType[]>([]);
 
     async function getMail() {
         setIsFetching(true);
@@ -79,6 +82,18 @@ function Messages() {
         return label;
     }
 
+    function filterOnlyUnread() {
+        const filteredUnreadMails: SortedMailType[] = sortedMails.map((cluster) => {
+            const filterMails = cluster.mails.filter(mail => {
+                return mail.is_seen == false;
+            });
+            return {...cluster, mails: filterMails};
+        }).filter(cluster => cluster.mails.length);
+        console.log(filteredUnreadMails)
+        setShowOnlyUnread(true);
+        setUnreadMails([...filteredUnreadMails]);
+    }
+
     useEffect(() => { getMail() }, [user?.id]);
 
     useEffect(() => {
@@ -86,6 +101,12 @@ function Messages() {
             groupNotifications();
         }
     }, [mails])
+
+    useEffect(() => {
+        console.log(showOnlyUnread)
+        if(!showOnlyUnread) setUnreadMails([]);
+        else filterOnlyUnread();
+    }, [showOnlyUnread])
 
     return (<>
         <section className="w-full h-full relative flex justify-center overflow-x-hidden overflow-y-scroll z-0">
@@ -104,7 +125,7 @@ function Messages() {
 
                     </h2>
                     <div className="flex gap-1.5 place-items-center ml-auto text-md font-serif">
-                        <SwitchButton fn={() => { }} />
+                        <SwitchButton fn={(bool) => setShowOnlyUnread(bool)} />
                         <span className='sm:text-sm text-xs font-serif text-accent-600'>Show only unread</span>
                     </div>
                 </header>
@@ -115,7 +136,7 @@ function Messages() {
                         isFetching ? <div className="flex flex-col gap-5 mt-2">
                             {
                                 Array.from({ length: 3 }).map((_, idx) => {
-                                    return <div className="flex flex-col gap-2" key={"listing_div"+idx}>
+                                    return <div className="flex flex-col gap-2" key={"listing_div" + idx}>
                                         <ListingSkeleton key={idx} height={25} width={70} />
                                         {Array.from({ length: 5 }).map((_, idx) => {
                                             return <ListingSkeleton key={idx} height={60} />
@@ -124,34 +145,23 @@ function Messages() {
                                 })
                             }
                         </div> :
-                            sortedMails.length > 0 ? (
+                            sortedMails.length > 0 && !showOnlyUnread ? (
                                 sortedMails.map((group, idx) => {
-                                    return <div className="w-full flex flex-col py-2 gap-2" key={idx}>
-                                        <h3 className="text-md text-black font-bold">{group.label}</h3>
-                                        {group.mails.map((mail) => {
-                                            return <Link
-                                                className={`flex gap-2 w-full max-h-20 py-2 relative shadow-md px-3 rounded-md hover:bg-gray-200 transition-all cursor-pointer ${!mail.is_seen && "*:font-bold"}`}
-                                                key={mail.mail_id}
-                                                href={`/mails/${mail.mail_id}`}>
-                                                {/* <Link href={`/mails/${mail.id}`} id={mail.id+"mail"} className="hidden"/> */}
-                                                <h2 className="w-10 h-10 flex place-items-center justify-center text-white rounded-full primary-gradient shrink-0">{mail.sender_name[0].toLocaleUpperCase()}</h2>
-                                                <div className="w-full flex flex-col overflow-hidden">
-                                                    <h3 className="text-md truncate w-[60%] shrink-0">{mail.subject}</h3>
-                                                    <p className="text-sm h-auto truncate w-[90%]">
-                                                        <span className="">Message: </span>
-                                                        {mail.message_description}
-                                                    </p>
-                                                </div>
-                                                {!mail.is_seen && <div className="w-2 h-2 absolute top-2 right-2 rounded-full bg-red-600" />}
-                                            </Link>
-                                        })}
-                                    </div>
+                                    const args = { group, idx };
+                                    return <Mail {...args} />
                                 })
                             ) : (
-                                <div className="h-full w-full flex flex-col justify-center place-items-center">
-                                    <BellOffIcon scale={1} size={30} className="text-gray-500" />
-                                    <h1 className="text-xl text-center font-serif text-gray-300">There are no mails.</h1>
-                                </div>
+                                unreadMails.length ? (
+                                    unreadMails.map((group, idx) => {
+                                        const args = { group, idx };
+                                        return <Mail {...args} />
+                                    })
+                                ) : (
+                                    <div className="h-full w-full flex flex-col justify-center place-items-center">
+                                        <BellOffIcon scale={1} size={30} className="text-gray-500" />
+                                        <h1 className="text-xl text-center font-serif text-gray-300">There are no mails.</h1>
+                                    </div>
+                                )
                             )
                     }
                 </div>

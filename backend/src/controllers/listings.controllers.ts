@@ -211,10 +211,14 @@ export const loadListingInitially = async (req: Request, res: Response) => {
             LEFT JOIN listing_images li ON li.listing_id = l.id
             GROUP BY l.id
             ORDER BY l.created_at DESC
-            LIMIT 10;
+            LIMIT 1;
         `;
         const result = await pool.query(query, [req.user!.userId]);
-        sendResponse(res, [...result.rows]);
+        if (result.rows.length) {
+            sendResponse(res, [...result.rows]);
+            return;
+        }
+        sendResponse(res, "End of the Lists.")
     } catch (err) {
         if (err instanceof Error) sendError(res, err.message);
         throw err
@@ -281,11 +285,14 @@ export const loadListings = async (req: Request, res: Response) => {
                 )
             GROUP BY l.id
             ORDER BY l.created_at DESC
-            LIMIT 10;
+            LIMIT 1;
         `;
         const result = await pool.query(query, [property_type, min_price, max_price, bedrooms, bathrooms, status, search_value, last_item?.created_at, req.user!.userId]);
-        console.log(result.rows, search_value)
-        sendResponse(res, [...result.rows]);
+        if (result.rows.length) {
+            sendResponse(res, [...result.rows]);
+            return;
+        }
+        sendResponse(res, "End of the Lists.")
     } catch (err) {
         console.log(err)
         if (err instanceof Error) sendError(res, err.message);
@@ -331,11 +338,15 @@ export const getAgentListing = async (req: Request, res: Response) => {
                 )
             GROUP BY l.id
             ORDER BY l.created_at DESC
-            LIMIT 10;
+            LIMIT 1;
         ;`;
     try {
         const result = await pool.query(query, [user.id, last_item?.created_at])
-        sendResponse(res, result.rows)
+        if(result.rows.length) {
+            sendResponse(res, [...result.rows]);
+            return;
+        }
+        sendResponse(res, "End of the Lists.")
     } catch (err) {
         if (err instanceof Error) sendError(res, err.message);
         throw err

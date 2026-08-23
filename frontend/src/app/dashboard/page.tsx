@@ -14,10 +14,11 @@ import { UIEvent, use, useContext, useEffect, useRef, useState } from "react";
 export default function Dashboard() {
     const { deleteFromListing, loadMyListings } = useListing();
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
+    const { user } = useAuth();
     const [myListings, setMyListings] = useState<Listing[]>([]);
     const [isMyListingLoading, setIsMyListingLoading] = useState<boolean>(false);
     const [fetchingAgain, setFetchingAgain] = useState<boolean>(false);
-    const { user } = useAuth();
+    const [isLastItem, setIsLastItem] = useState<boolean>(false);
     const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     async function initialFetch() {
@@ -36,6 +37,7 @@ export default function Dashboard() {
     }
 
     async function handleFetchOnScroll(e: UIEvent<HTMLDivElement>) {
+        if(isLastItem) return;
         const element = e.currentTarget;
 
         const isAtBottom =
@@ -57,7 +59,8 @@ export default function Dashboard() {
             setFetchingAgain(true)
             try {
                 const result = await loadMyListings(user, lastItem);
-                if (result?.length) setMyListings(prev => [...prev, ...result])
+                if (result?.length && !(typeof result === "string")) setMyListings(prev => [...prev, ...result]);
+                else setIsLastItem(true);
             } catch (error) {
                 console.log(error);
             } finally {
@@ -109,6 +112,7 @@ export default function Dashboard() {
                     {
                         fetchingAgain && <div className="border-5 border-accent-500 border-b-transparent w-12 h-12 shrink-0 mx-auto block bg-transparent animate-spin rounded-full" />
                     }
+                    {isLastItem && <span className="text-center mx-auto my-2 font-serif text-gray-400">End of the Lists.</span>} 
                 </div>
             </div>
         </section>

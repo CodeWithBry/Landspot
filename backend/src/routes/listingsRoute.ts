@@ -11,7 +11,7 @@ router.post("/add-listing", requireAuth, requireRole('agent'), createNewListing)
 router.post("/my-listing", getAgentListing); 
 router.post("/test-address", testAddress);
 router.get("/load-listings-initially", requireAuth, loadListingInitially);
-router.post("/load-listings", loadListings); // get listings in listing format
+router.post("/load-listings", requireAuth, loadListings); // get listings in listing format
 router.post("/delete-list/:params", requireAuth, requireRole('agent'), deleteListing);
 router.get("/search/:params", searchListings);
 router.post("/update-listing", requireAuth, requireRole('agent'), updateListing);

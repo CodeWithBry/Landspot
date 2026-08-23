@@ -19,6 +19,7 @@ function Listings() {
     const [fetchingAgain, setFetchingAgain] = useState<boolean>(false);
     const [showFilterBox, setShowFilterBox] = useState<boolean>(false);
     const [applyFilter, setApplyFilter] = useState<boolean>(false);
+    const [isLastItem, setIslastItem] = useState<boolean>(false);
     const [filterOptions, setFilterOptions] = useState<FilterOptions>({
         property_type: "any",
         min_price: 0,
@@ -28,18 +29,32 @@ function Listings() {
         status: "active"
     });
     const [listingResult, setListingResult] = useState<Listing[] | undefined | null>(null);
-    const filterBoxArgs: FilterBoxProps = {
-        showFilterBox, setShowFilterBox,
-        filterOptions, setFilterOptions,
-        setApplyFilter
-    };
+    const blankFilterOptions: FilterOptions = {
+        property_type: "any",
+        min_price: 0,
+        max_price: 0,
+        bedrooms: 0,
+        bathrooms: 0,
+        status: "active"
+    }
 
-    async function filterListingsUsingSearch(filterOptions: FilterOptions) {
+    async function filterListings(filterOptions: FilterOptions) {
+        setListingResult([]);
         setFetchingAgain(true);
         try {
-            const res = await loadListing({ ...filterOptions }, val, null);
-            if (res) {
-                setListingResult(prev => prev && !val ? [...prev, ...res] : [...res]);
+            const res = await loadListing({...filterOptions}, val, null);
+            if (res?.length && !(typeof res === "string")) {
+                setListingResult(prev => {
+                    if (prev) {
+                        if (!val) return [...prev, ...res];
+                        else return [...res];
+                    }
+
+                    return prev;
+                });
+                return;
+            } else if (typeof res === "string") {
+                setIslastItem(true);
                 return;
             }
             setListingResult(null);
@@ -55,12 +70,15 @@ function Listings() {
     async function getListings(filterOptions: FilterOptions) {
         setFetchingAgain(true);
         try {
-            const res = await loadListing({ ...filterOptions }, val, listingResult ? listingResult[listingResult?.length - 1] : null);
-            if (res) {
+            const res = await loadListing(applyFilter ? { ...filterOptions } : {...blankFilterOptions}, val, listingResult ? listingResult[listingResult?.length - 1] : null);
+            if (res?.length && !(typeof res === "string")) {
                 setListingResult(prev => {
-                    if(prev) return [...prev, ...res];
+                    if (prev) return [...prev, ...res];
                     return prev;
                 });
+                return;
+            } else if (typeof res === "string") {
+                setIslastItem(true);
                 return;
             }
             setListingResult(null);
@@ -72,10 +90,6 @@ function Listings() {
             setFetchingAgain(false);
         }
     }
-
-    useEffect(() => {
-        if (applyFilter) getListings(filterOptions);
-    }, [applyFilter, filterOptions])
 
     useEffect(() => {
         async function loadListing() {
@@ -96,9 +110,18 @@ function Listings() {
         }
 
         if (!val) loadListing();
-        else filterListingsUsingSearch(filterOptions);
+        else {
+            filterListings(filterOptions);
+            setIslastItem(false);
+        }
     }, [val])
 
+    const filterBoxArgs: FilterBoxProps = {
+        showFilterBox, setShowFilterBox,
+        filterOptions, setFilterOptions,
+        applyFilter, setApplyFilter,
+        setIslastItem, filterListings
+    };
 
     return (<>
         <FilterBox {...filterBoxArgs} />
@@ -135,7 +158,9 @@ function Listings() {
                                     }} />
                             </label>
                             <button
-                                onClick={() => setShowFilterBox(prev => !prev)}
+                                onClick={() => {
+                                    setShowFilterBox(prev => !prev);
+                                }}
                                 className="btn h-full bg-accent-400 text-white hover:opacity-70 active:opacity-90">
                                 <Filter size={16} />
                                 <span className="md:block hidden">Filter Options</span>
@@ -159,32 +184,35 @@ function Listings() {
                     {
                         fetchingAgain ?
                             <div className="border-5 border-accent-500 border-b-transparent w-12 h-12 shrink-0 mx-auto block bg-transparent animate-spin rounded-full" /> :
-                            <button
-                                className="btn block mx-auto my-2 border-2 border-gray-600 font-serif"
-                                onClick={() => getListings(filterOptions)}>
-                                Load More
-                            </button>
+                            isLastItem ?
+                                <span className="text-center mx-auto my-2 font-serif text-gray-400">End of the Lists.</span> : <button
+                                    className="btn block mx-auto my-2 border-2 border-gray-600 font-serif"
+                                    onClick={() => getListings(filterOptions)}>
+                                    Load More
+                                </button>
                     }
                 </div>
-
-
             </div>
         </section>
     </>)
 }
 
-function FilterBox({ filterOptions, setFilterOptions, showFilterBox, setShowFilterBox, setApplyFilter }: FilterBoxProps) {
+function FilterBox({ filterOptions, setFilterOptions, showFilterBox, setShowFilterBox, applyFilter, setApplyFilter, setIslastItem, filterListings }: FilterBoxProps) {
     const propertyOptions: ["any", "house", "apartment", "condo", "lot"] = ["any", "house", "apartment", "condo", "lot"];
     const statusOptions: ['active', 'sold', 'inactive'] = ['active', 'sold', 'inactive'];
 
     function handleFilterization(bool: boolean) {
-        setApplyFilter(bool);
         setShowFilterBox(false);
+        setIslastItem(false);
+        if (bool) {
+            filterListings(filterOptions);
+        }
     }
 
     return (<>
-        <div
-            className={showFilterBox ? "absolute flex justify-center items-center w-full h-full bg-semi-transparent z-1" : "hidden"}>
+        <form
+            onSubmit={(e) => e.preventDefault()}
+            className={showFilterBox ? "absolute flex justify-center items-center w-full h-full bg-semi-transparent z-1" : "hidden"} >
             <label htmlFor="close-filter-box" className="w-full h-full absolute z-0"></label>
             <div className="w-80 h-fit px-5 py-3 flex flex-col gap-3 bg-white shadow-sm rounded-md relative z-1">
                 <h3 className="flex items-center justify-between">
@@ -192,11 +220,15 @@ function FilterBox({ filterOptions, setFilterOptions, showFilterBox, setShowFilt
                     <button
                         className="flex items-center justify-center p-2 rounded-md bg-gray-200 cursor-pointer hover:opacity-70 active:opacity-90"
                         id="close-filter-box"
-                        onClick={() => setShowFilterBox(prev => !prev)}>
+                        onClick={() => {
+                            setShowFilterBox(prev => !prev)
+                            setIslastItem(false);
+                        }}>
                         <X />
                     </button>
                 </h3>
-                <div className="flex flex-col gap-2">
+                <div className={`flex flex-col gap-2 relative`}>
+                    <div className={`absolute top-0 left-0 bg-white w-full h-full ${!applyFilter ? "opacity-50 block" : "hidden"}`} />
                     <label
                         className="flex w-full items-center justify-between"
                         htmlFor="property_selector">
@@ -266,6 +298,16 @@ function FilterBox({ filterOptions, setFilterOptions, showFilterBox, setShowFilt
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setFilterOptions(prev => ({ ...prev, max_price: Number(e.target.value) }))} />
                     </label>
                 </div>
+                <label
+                    htmlFor="apply-filter"
+                    className="flex gap-2 w-full justify-baseline cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={applyFilter}
+                        id="apply-filter"
+                        onChange={(e) => setApplyFilter(e.target.checked)} />
+                    <span className="text-xs">Apply Filter</span>
+                </label>
 
                 <div className="flex w-full gap-2">
                     <button
@@ -280,7 +322,7 @@ function FilterBox({ filterOptions, setFilterOptions, showFilterBox, setShowFilt
                     </button>
                 </div>
             </div>
-        </div>
+        </form>
     </>)
 }
 
