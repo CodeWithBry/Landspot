@@ -1,6 +1,6 @@
 'use client'
 import { api } from "@/lib/api";
-import { AuthContextType, LoginType, ProfileType, SignupType, User } from "@/types/AuthContextType";
+import { AuthContextType, FollowType, GetUsersType, LoginType, ProfileType, SignupType, User } from "@/types/AuthContextType";
 import { useRouter } from "next/navigation";
 import { createContext, ReactNode, useEffect, useState } from "react";
 
@@ -8,30 +8,64 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<| null>(null);
+    const [profile, setProfile] = useState<ProfileType | null>(null);
     const [loadingAuthentication, setLoadingAuthentication] = useState<boolean>(false);
     const [failedToAuthenticate, setFailedToAuthenticate] = useState<boolean>(false);
     const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false);
 
 
     // FUNCTIONS 
-    const getToken = () =>
-        typeof window !== 'undefined' ? localStorage.getItem('token') : null
-
-    const setToken = (token: string) => {
-        localStorage.setItem("token", token);
+    const getUsers: GetUsersType = async (last_item: ProfileType | null, follower_profile_id: string | null, signal: AbortSignal): Promise<ProfileType[] | undefined> => {
+        try {
+            const result = await api.post(`/api/auth/get-users`, { last_item, follower_profile_id }, { signal });
+            if (result) return result.data.data;
+        } catch (error) {
+            console.log(error);
+        }
     }
 
-    // TODO
+    const signup: SignupType = async (email: string, user_name: string, password: string, role: "buyer" | "agent"): Promise<string | undefined> => {
+        setLoadingAuthentication(true);
+        try {
+            // if (password != confirmPassword) return setLoadingAuthentication(false);
+            const result = await api.post('/api/auth/register', { email, user_name, password, role });
+            setLoadingAuthentication(false);
+            return result.data.data.mess;
+        } catch (error) {
+            setLoadingAuthentication(false);
+        }
+    }
+
+    const login: LoginType = async (email: string, password: string) => {
+        setLoadingAuthentication(true);
+        try {
+            const { data } = await api.post('/api/auth/login', { email, password });
+            setUser(data.data.user);
+            router.push('/');
+        } catch (error) {
+            setFailedToAuthenticate(true);
+        } finally {
+            setLoadingAuthentication(false);
+        }
+    }
+
+    const logout = async () => {
+        try {
+            await api.get('/api/auth/logout');
+            setUser(null);
+            router.push('/login');
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
     const getProfile = async (): Promise<ProfileType | null | undefined> => {
         try {
             const result = await api.get(`/api/auth/get-profile`);
             const { data } = result.data;
-            setProfile(data);
-            return data;
+            return data as ProfileType;
         } catch (error) {
             console.error(error);
-            throw error;
         }
     };
 
@@ -46,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return photo_url;
         } catch (error) {
             console.log(error);
-            throw error;
         }
     }
 
@@ -55,72 +88,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await api.post(`/api/auth/update-profile`, { ...profile });
         } catch (error) {
             console.log(error);
-            throw error;
         }
     }
 
-    const deleteToken = () => {
-        localStorage.removeItem("token");
-    }
-
-    const signup: SignupType = async (email: string, user_name: string, password: string, role: "buyer" | "agent"): Promise<string | undefined> => {
-        setLoadingAuthentication(true);
+    const follow: FollowType = async (follower_id: string, followed_id: string): Promise<string | undefined> => {
         try {
-            // if (password != confirmPassword) return setLoadingAuthentication(false);
-            const result = await api.post('/api/auth/register', { email, user_name, password, role });
-            setToken(result.data.token);
-            setLoadingAuthentication(false);
-            return result.data.data.mess;
+            const res = await api.post(`/api/auth/follow`, { follower_id, followed_id });
+            return res.data.data
         } catch (error) {
-            setLoadingAuthentication(false);
-            throw error;
+            console.log(error);
         }
     }
 
-    const login: LoginType = async (email: string, password: string) => {
-        setLoadingAuthentication(true);
+    const unFollow: FollowType = async (follower_id: string, followed_id: string): Promise<string | undefined> => {
+        console.log(follower_id, followed_id)
         try {
-            const { data } = await api.post('/api/auth/login', { email, password });
-            setToken(data.data.token);
-            setUser(data.data.user);
-            router.push('/');
+            const res = await api.post(`/api/auth/unfollow`, { follower_id, followed_id });
+            return res.data.data
         } catch (error) {
-            setFailedToAuthenticate(true);
-            throw error;
-        } finally {
-            setLoadingAuthentication(false);
-        }
-    }
-
-    const logout = async () => {
-        try {
-            setUser(null);
-            deleteToken();
-            router.push('/login')
-        } catch (error) {
-            throw error;
+            console.log(error);
         }
     }
 
     useEffect(() => {
-        const tokenKey = localStorage.getItem('token');
 
-        if (tokenKey) {
-            api.get('/api/auth/get-user')
-                .then(async (res) => {
-                    setUser(res.data.data);
-                    await getProfile();
-                })
-                .catch((e) => console.log(e))
-                .finally(() => {
-                    setLoadingAuthentication(false)
-                    setIsDataLoaded(true)
-                })
-        }
-        setIsDataLoaded(true)
+        api.get('/api/auth/get-user', {
+            withCredentials: true
+        })
+            .then(async (res) => {
+                setUser(res.data.data);
+                const result = await getProfile();
+                if (result) setProfile(result);
+            })
+            .catch((e) => console.log(e))
+            .finally(() => {
+                setLoadingAuthentication(false)
+                setIsDataLoaded(true)
+            })
+        setIsDataLoaded(true);
     }, [])
 
-    return <AuthContext.Provider value={{ loadingAuthentication, failedToAuthenticate, setFailedToAuthenticate, user, profile, isDataLoaded, signup, login, logout, getProfile, updateProfilePicture, updateProfile }}>
+    return <AuthContext.Provider value={{ loadingAuthentication, failedToAuthenticate, setFailedToAuthenticate, user, profile, isDataLoaded, signup, login, logout, getUsers, getProfile, updateProfilePicture, updateProfile, follow, unFollow }}>
         {children}
     </AuthContext.Provider>
 }

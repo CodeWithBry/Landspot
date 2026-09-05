@@ -64,7 +64,7 @@ export async function getFavorites(req: Request, res: Response) {
 export async function addFavorite(req: Request, res: Response) {
     try {
         const { listing_id } = req.params;
-        const isAlreadyAdded = (await pool.query(`
+        (await pool.query(`
             INSERT INTO favorites (user_id, listing_id)
             VALUES ($1, $2)
             ON CONFLICT (user_id, listing_id)
@@ -84,7 +84,6 @@ export async function removeFavorite(req: Request, res: Response) {
         const query = `
             DELETE FROM favorites WHERE user_id = $1 AND listing_id = $2
         `
-        console.log("DELETE!")
         await pool.query(query, [req.user!.userId, listing_id]);
         sendResponse(res, "Added to Favorites successfully!");
     } catch (error) {

@@ -21,18 +21,21 @@ export default function Dashboard() {
     const [isLastItem, setIsLastItem] = useState<boolean>(false);
     const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    async function initialFetch() {
-        setIsMyListingLoading(true);
+    async function loadListings(fetchAgain: boolean) {
+        fetchAgain ? setFetchingAgain(true) : setIsMyListingLoading(true);
         try {
             if (user) {
                 const result = await loadMyListings(user, myListings[myListings.length - 1]);
-                if (result?.length) setMyListings([...result]);
+                if (result?.length && !(typeof result === "string")) setMyListings([...result]);
+                else {
+                    setIsLastItem(true);
+                }
             }
         } catch (error) {
             console.log(error);
             throw error;
         } finally {
-            setIsMyListingLoading(false);
+            fetchAgain ? setFetchingAgain(false) : setIsMyListingLoading(false);
         }
     }
 
@@ -56,21 +59,12 @@ export default function Dashboard() {
             const lastItem = myListings.at(-1);
 
             if (!lastItem) return;
-            setFetchingAgain(true)
-            try {
-                const result = await loadMyListings(user, lastItem);
-                if (result?.length && !(typeof result === "string")) setMyListings(prev => [...prev, ...result]);
-                else setIsLastItem(true);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setFetchingAgain(false)
-            }
+            await loadListings(true);
         }, 300);
     }
 
     useEffect(() => {
-        if (user) initialFetch();
+        if (user) loadListings(false);
     }, [user?.id])
 
     return <>

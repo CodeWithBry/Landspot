@@ -19,8 +19,7 @@ function ListingCard({ listing, setListingResult }: Props) {
     async function addToFavorite(listing_id: string) {
         try {
             if (user?.id) {
-                const message = await handleFavoriteChange(listing, !listing.is_favorite);
-                console.log(message);
+                await handleFavoriteChange(listing, !listing.is_favorite);
                 setListingResult(prev => {
                     return prev ?
                         prev.map((list) => {
@@ -41,7 +40,7 @@ function ListingCard({ listing, setListingResult }: Props) {
     return (
         <div className="w-[95%] flex lg:flex-row flex-col lg:h-50 h-fit mx-auto mt-2 overflow-hidden rounded-md shadow-sm shrink-0">
             <div className="relative lg:w-80 w-full">
-                <span className="absolute top-2 left-2 bg-accent-500 rounded-xl p-3 py-1.5 text-sm font-serif text-white">{listing.property_type.toUpperCase()}</span>
+                <span className="absolute top-2 left-2 bg-accent-500 rounded-xl p-3 py-1.5 text-sm font-serif text-white">{listing?.property_type.toUpperCase()}</span>
                 <div
                     className={`lg:w-full lg:h-full md:w-full w-full h-70`}
                     style={{ ...imageStyle }} />

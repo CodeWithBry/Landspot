@@ -7,18 +7,17 @@ export const requireAuth = (
   res: Response,
   next: NextFunction
 ) => {
-  const header = req.headers.authorization
+  const token = req.cookies.access_token;
 
-  if (!header?.startsWith("Bearer ")) {
+  if (!token) {
     sendError(res, "Unauthorized", 401);
     return;
   }
 
   try {
-    const token = header.split(" ")[1]
-    req.user = verifyToken(token)
-    next()
+    req.user = verifyToken(token);
+    next();
   } catch {
-    return sendError(res, "Invalid or expired token", 401)
+    return sendError(res, "Invalid or expired token", 401);
   }
 }

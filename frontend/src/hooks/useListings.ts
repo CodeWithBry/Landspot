@@ -57,7 +57,7 @@ export function useListing(): UseListingType {
   const loadListingInitially = async (): Promise<Listing[] | undefined> => {
     try {
       const res = await api.get('/api/listings/load-listings-initially');
-      return [...res.data.data];
+      return res.data.data;
     } catch (error) {
       console.log(error)
       throw error
@@ -89,7 +89,6 @@ export function useListing(): UseListingType {
     try {
       const result = await api.post("/api/listings/get-listing-by-id", { listing_id, user_id: user?.id });
       if (result.data.data) {
-        console.log(result.data.data[0])
         return result.data.data[0];
       }
     } catch (error) {

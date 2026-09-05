@@ -95,11 +95,12 @@ function Listings() {
         async function loadListing() {
             try {
                 const res = await loadListingInitially();
-                if (res) {
+                if (res?.length && !(typeof res === "string")) {
                     setListingResult([...res]);
                     return;
                 }
                 setNoResult(true);
+                setIslastItem(true);
                 setIsFetching(false);
             } catch (error) {
                 setNoResult(true);

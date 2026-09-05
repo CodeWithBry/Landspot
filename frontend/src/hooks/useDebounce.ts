@@ -5,7 +5,7 @@ export function useDebounce(): [string, string, Dispatch<SetStateAction<string>>
     const [debounceValue, setDebounceValue] = useState<string>("");
     useEffect(() => {
         const time = setTimeout(() => {
-            setVal(debounceValue)
+            setVal(debounceValue);
         }, 1000);
 
         return () => clearTimeout(time);

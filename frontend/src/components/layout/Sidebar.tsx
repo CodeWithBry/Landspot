@@ -3,7 +3,7 @@
 import { navContext } from "@/context/NavigationProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { NavigationContextType } from "@/types/NavigationContextType";
-import { Bell, Heart, LayoutDashboard, LogIn, LogOut, LucideIcon, Map, User2, X, Menu, User, List, Users, Settings, Mail } from "lucide-react";
+import { Bell, Heart, LayoutDashboard, LogIn, LogOut, LucideIcon, Map, User2, X, Menu, User, List, Users, Settings, Mail, SoapDispenserDroplet } from "lucide-react";
 import { useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useClickOutside } from "@/hooks/useClickOutside";
@@ -17,13 +17,14 @@ type Tab = {
 
 export function Sidebar() {
     const { showMenu, setShowMenu, unseenMailsLength, setUnseenMailsLength, path } = useContext(navContext) as NavigationContextType;
-    const { user, logout } = useAuth();
+    const { user, profile, logout } = useAuth();
     const { getUnseenEmailsLength } = useMails();
     const userMenuRef = useRef<HTMLDivElement | null>(null);
     const isAuthPath = path === "/login" || path === "/signup";
     const tabs: Tab[] = [
         { tabName: "Map", tabPath: "/", icon: Map },
         { tabName: "Listings", tabPath: "/listings", icon: List },
+        { tabName: "Users", tabPath: "/users", icon: User2 },
         { tabName: "Favorites", tabPath: "/favorites", icon: Heart },
         { tabName: "Dashboard", tabPath: "/dashboard", icon: LayoutDashboard },
         { tabName: "Mails", tabPath: "/mails", icon: Mail },
@@ -33,13 +34,13 @@ export function Sidebar() {
     useClickOutside(userMenuRef, () => showUserMenu ? setShowUserMenu(false) : null);
     
     useEffect(() => {
-        if(getUnseenEmailsLength) getUnseenEmailsLength(setUnseenMailsLength);
-    }, [getUnseenEmailsLength])
+        if(getUnseenEmailsLength && user?.id) getUnseenEmailsLength(setUnseenMailsLength);
+    }, [getUnseenEmailsLength, user?.id])
 
     return (
         <div
             className={`${showMenu ? "md:w-fit w-full absolute" : !isAuthPath ? "w-fit md:relative md:flex hidden" : "relative w-0 "} md:relative h-full bg-semi-transparent z-1 flex`}>
-            <div className={`${showMenu ? "w-80 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2 md:left-0 right-full" : "opacity-0 z-0 w-0 border-r-0"} h-full md:relative overflow z-1 flex flex-col justify-between border-r-gray-400 bg-white`}>
+            <div className={`${showMenu ? "w-55 px-3 border-r-2" : !isAuthPath ? "w-13.5 px-3 border-r-2 md:left-0 right-full" : "opacity-0 z-0 w-0 border-r-0"} shrink-0 h-full md:relative overflow z-1 flex flex-col justify-between border-r-gray-400 bg-white`}>
                 <div className="flex flex-col gap-5 h-full">
                     <h3 className={`flex text-xl font-serif font-bold mt-5 place-items-center  justify-between ${showMenu ? "text-primary-300" : "bg-primary-300 text-white justify-center place-items-center rounded-md"}`}>
                         {showMenu ? "Landspot" : "L"}
@@ -51,15 +52,18 @@ export function Sidebar() {
                             }
                         </button>
                     </h3>
-                    <div className="overflow-x-hidden overflow-y-auto h-full mb-2 w-full relative">
+                    <div className="h-full mb-2 w-full relative shrink-0">
                         <div className="flex flex-col h-full absolute w-full">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 const isActive = tab.tabPath === path;
-                                const element = <li key={tab.tabName}>
-                                    <Link href={tab.tabPath} className={`flex gap-1 w-full rounded-md px-2 py-2 relative place-items-center md:text-m cursor-pointer text-md hover:text-accent-500 font-body transition-all ${isActive ? "text-white bg-accent-400 hover:text-white hover:opacity-75" : "text-black"}`}>
+                                const element = <li key={tab.tabName} className="list-none group">
+                                    <Link href={tab.tabPath} className={`flex gap-1 w-full font-serif font-semibold rounded-md px-2 py-2 relative place-items-center md:text-m cursor-pointer text-md hover:text-accent-500 transition-all ${isActive ? "text-white bg-accent-400 hover:text-white hover:opacity-75" : "text-black"}`}>
                                         <Icon size={15} />
-                                        {showMenu ? tab.tabName : ""}
+                                        {showMenu ? 
+                                            tab.tabName : 
+                                            <span className="w-fit h-fit px-2 py-1.25 font-serif absolute left-[160%] top-[50%] translate-y-[-50%] rounded-sm text-xs text-gray-500 bg-gray-200 shadow-md opacity-0 transition-all duration-200 hidden group-hover:block group-hover:opacity-100">{tab.tabName}</span>    
+                                        }
 
                                         {
                                             tab.tabName == "Mails" && unseenMailsLength > 0 &&
@@ -117,7 +121,7 @@ export function Sidebar() {
                                 <button
                                     onClick={() => setShowUserMenu(prev => !prev)}
                                     className={`${showMenu ? "w-full px-3 py-2 border-2" : "w-fit justify-center"} flex shrink-0 gap-2 place-items-center   cursor-pointer relative  rounded-md`}>
-                                    <img src={'/empty-profile.svg'} className="w-6.5 h-6.5 rounded-md shadow-md " />
+                                    <img src={profile?.photo_url ? profile.photo_url : '/empty-profile.svg'} className="w-6.5 h-6.5 rounded-md shadow-md " />
                                     <p className={`${showMenu ? 'block' : 'hidden'} font-semibold font-serif text-xs md:text-sm truncate`}>{user?.user_name}</p>
                                 </button>
                             </div>

@@ -4,13 +4,15 @@ import { AuthProvider } from "@/context/AuthProvider";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Roboto_Slab } from 'next/font/google'
 import { NavigationProvider } from "@/context/NavigationProvider";
-
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import { config } from "@fortawesome/fontawesome-svg-core";
 
 const inter = Roboto_Slab({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-roboto-slab',
 })
+config.autoAddCss = false;
 
 export const metadata: Metadata = {
   title: "Landspot",

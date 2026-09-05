@@ -2,11 +2,13 @@
 
 import { navContext } from "@/context/NavigationProvider"
 import { useAuth } from "@/hooks/useAuth";
-import { api } from "@/lib/api";
 import { ProfileType } from "@/types/AuthContextType";
 import { NavigationContextType } from "@/types/NavigationContextType";
+import { faFacebook, faInstagram, faLinkedin } from "@fortawesome/free-brands-svg-icons";
+import { faLink } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Eye, Menu, Pencil, Save, Trash, X } from "lucide-react";
-import { ChangeEvent, FormEvent, MouseEvent, useContext, useEffect, useRef, useState } from "react"
+import { ChangeEvent, MouseEvent, useContext, useEffect, useRef, useState } from "react"
 
 function Profile() {
     const { showMenu, setShowMenu } = useContext(navContext) as NavigationContextType;
@@ -73,7 +75,7 @@ function Profile() {
             })
             .finally(() => {
                 setIsLoading(false);
-            }) 
+            })
     }, [])
 
     useEffect(() => {
@@ -98,7 +100,7 @@ function Profile() {
         <section className="w-full h-full flex justify-center overflow-x-hidden overflow-y-scroll z-0">
             <div
                 className={`min-w-70 max-w-200 w-full h-full flex flex-col mx-5 mt-5`}>
-                {/* Profile */}
+                {/* Header */}
                 <header className="flex w-full justify-between">
                     <h2 className="text-black font-serif sm:text-2xl text-lg font-bold flex gap-2 place-items-center sticky top-0 z-1 bg-white py-2">
                         <button
@@ -139,6 +141,7 @@ function Profile() {
                 </header>
                 <hr className="w-[97.5%] h-px text-gray-300 block mx-auto rounded-full" />
 
+                {/* Skeleton Loader */}
                 <div className={`flex flex-col w-full h-fit my-2  ${isLoading ? "block" : "hidden"}`}>
                     <div className="flex flex-col md:flex-row gap-4 mx-10 my-4">
                         <div className="w-full listing-skeleton h-60 md:w-40 md:h-40 flex shrink-0 justify-center items-center md:rounded-full md:overflow-hidden" />
@@ -165,8 +168,9 @@ function Profile() {
                     </div>
                 </div>
 
-
+                {/* Contents */}
                 <div className={`flex flex-col w-full h-fit my-2  ${isLoading && "hidden"}`}>
+                    {/* Profile Image and Names */}
                     <div className="flex flex-col md:flex-row gap-4 mx-10 my-4">
                         <div
                             className="w-full bg-gray-300 h-60 md:w-40 md:h-40 flex shrink-0 justify-center items-center border-3 border-gray-500 md:rounded-full md:overflow-hidden"
@@ -245,6 +249,7 @@ function Profile() {
                         </div>
                     </div>
 
+                    {/* Email, Contact Number and Bio */}
                     <div className="flex flex-col gap-2 mx-10">
                         <div className="w-full h-px bg-gray-300 flex flex-col md:flex-row gap-4 my-4" />
                         <div className="flex flex-col sm:flex-row gap-2 w-full">
@@ -269,14 +274,98 @@ function Profile() {
                                     onChange={(e) => handleContentOnChange(e, "phone_number")} />
                             </label>
                         </div>
-                        <span className="text-black text-sm font-semibold mx-2">Agent Description</span>
+                        <span className="text-black text-sm font-semibold mx-2">Bio</span>
                         <textarea
                             rows={5}
                             value={profile?.bio ?? ""}
                             onChange={(e) => handleContentOnChange(e, "bio")}
                             className="border-2 border-gray-800 mb-2 resize-none rounded-md full h-auto text-sm px-2 py-1.5" />
                     </div>
+
+                    {/* Social Media Accounts */}
+                    <div className="flex flex-col gap-2 mx-10 mb-5">
+                        <div className="w-full h-px bg-gray-300 flex flex-col md:flex-row gap-4 my-4" />
+                        <div className="flex flex-col gap-2 w-full">
+                            {/* Social Media */}
+                            <div className="flex flex-col w-full gap-2">
+                                <span className="text-black text-sm font-semibold">Social Media Accouunts</span>
+                                <label
+                                    htmlFor="facebook"
+                                    className="flex gap-px items-center  border-2 border-gray-800 rounded-md">
+                                    <FontAwesomeIcon
+                                        icon={faFacebook}
+                                        style={{ color: "blue", fontSize: "20px", marginLeft: "10px" }} />
+                                    <input
+                                        type="text"
+                                        value={profile?.facebook_acc ?? ""}
+                                        contentEditable={isEditing}
+                                        placeholder="Facebook"
+                                        id="facebook"
+                                        className="w-full outline-none rounded-md full h-auto text-sm px-2 py-1.5"
+                                        onChange={(e) => handleContentOnChange(e, "facebook_acc")} />
+                                </label>
+                                <label
+                                    htmlFor="instagram"
+                                    className="flex gap-px items-center  border-2 border-gray-800 rounded-md">
+                                    <FontAwesomeIcon
+                                        icon={faInstagram}
+                                        style={{ color: "rgb(232, 14, 221)", fontSize: "20px", marginLeft: "10px" }} />
+                                    <input
+                                        type="text"
+                                        value={profile?.instagram_acc ?? ""}
+                                        contentEditable={isEditing}
+                                        id="instagram"
+                                        placeholder="Instagram"
+                                        className="w-full outline-none rounded-md full h-auto text-sm px-2 py-1.5"
+                                        onChange={(e) => handleContentOnChange(e, "instagram_acc")} />
+                                </label>
+                                <label
+                                    htmlFor="linkedIn"
+                                    className="flex gap-px items-center  border-2 border-gray-800 rounded-md">
+                                    <FontAwesomeIcon
+                                        icon={faLinkedin}
+                                        style={{ color: "blue", fontSize: "20px", marginLeft: "10px" }} />
+                                    <input
+                                        type="text"
+                                        value={profile?.linkedin_acc ?? ""}
+                                        contentEditable={isEditing}
+                                        id="linkedIn"
+                                        placeholder="LinkedIn"
+                                        className="w-full outline-none rounded-md full h-auto text-sm px-2 py-1.5"
+                                        onChange={(e) => handleContentOnChange(e, "linkedin_acc")} />
+                                </label>
+                            </div>
+
+                            {/* Website Link */}
+                            <div className="flex flex-col w-full gap-1.5">
+                                <div className="flex flex-col w-full gap-1.5">
+                                    <span className="text-black text-sm font-semibold">Website Link</span>
+                                    <label
+                                        className="flex gap-2 items-center border-2 border-gray-800 rounded-md">
+                                        <FontAwesomeIcon
+                                            icon={faLink}
+                                            style={{ color: "blue", fontSize: "20px", marginLeft: "10px" }} />
+                                        <input
+                                            type="text"
+                                            id="website_link"
+                                            placeholder="Link"
+                                            value={profile?.website_link ?? ""}
+                                            contentEditable={isEditing}
+                                            className=" rounded-md w-full outline-none h-auto text-sm px-2 py-1.5"
+                                            onChange={(e) => handleContentOnChange(e, "website_link")} />
+                                    </label>
+                                </div>
+                                {
+                                    profile?.website_link ? <iframe src={`${profile.website_link}`} className="w-full h-120 bg-gray-200 rounded-md flex justify-center items-center"/> : <div className="w-full h-30 bg-gray-200 rounded-md flex justify-center items-center">
+                                        No Website
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+
             </div>
         </section>
     )

@@ -21,7 +21,6 @@ export default function LocateUser({ center, setCenter, setIsUserLocated }: Prop
     map.locate({ setView: true, maxZoom: 16 })
 
     map.on('locationfound', (e: L.LocationEvent) => {
-      console.log("yes")
       setIsUserLocated(true)
       // Remove previous marker and circle if they exist
       if (userMarkerRef.current) {
