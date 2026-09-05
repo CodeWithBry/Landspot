@@ -1,3 +1,4 @@
+"use client"
 import { useAuth } from "@/hooks/useAuth";
 import { ProfileType } from "@/types/AuthContextType";
 import { useParams } from "next/navigation";

@@ -1,0 +1,47 @@
+[33m3280bcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33ma5314a9[m HEAD@{1}: Branch: renamed refs/heads/main to refs/heads/main
+[33ma5314a9[m HEAD@{3}: commit: Added Users tab
+[33m3280bcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{4}: Branch: renamed refs/heads/main to refs/heads/main
+[33m3280bcc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{6}: commit: pagination applied for fetching listings
+[33m3e47cdf[m HEAD@{7}: Branch: renamed refs/heads/main to refs/heads/main
+[33m3e47cdf[m HEAD@{9}: commit: pagination applied for fetching listings
+[33m39b8d7f[m HEAD@{10}: Branch: renamed refs/heads/main to refs/heads/main
+[33m39b8d7f[m HEAD@{12}: commit: Incorrect Queris Fixed in listing.controller.ts
+[33m18d2729[m HEAD@{13}: Branch: renamed refs/heads/main to refs/heads/main
+[33m18d2729[m HEAD@{15}: commit: Incorrect Queris Fixed in listing.controller.ts
+[33m3743cce[m HEAD@{16}: Branch: renamed refs/heads/main to refs/heads/main
+[33m3743cce[m HEAD@{18}: commit: Incorrect Queris Fixed in listing.controller.ts
+[33m61f375e[m HEAD@{19}: Branch: renamed refs/heads/main to refs/heads/main
+[33m61f375e[m HEAD@{21}: commit: Return listings with is_favorite value.
+[33mab9aa88[m HEAD@{22}: Branch: renamed refs/heads/main to refs/heads/main
+[33mab9aa88[m HEAD@{24}: commit: Return listings with is_favorite value.
+[33m21bf4fc[m HEAD@{25}: Branch: renamed refs/heads/main to refs/heads/main
+[33m21bf4fc[m HEAD@{27}: commit: Return listings with is_favorite value.
+[33m14d4e6e[m HEAD@{28}: Branch: renamed refs/heads/main to refs/heads/main
+[33m14d4e6e[m HEAD@{30}: commit: Deployment CORS Issue
+[33m2757d4c[m HEAD@{31}: Branch: renamed refs/heads/main to refs/heads/main
+[33m2757d4c[m HEAD@{33}: commit: listings/[id]/page.tsx error, expected arguments 2 fixed
+[33m8791e1d[m HEAD@{34}: Branch: renamed refs/heads/main to refs/heads/main
+[33m8791e1d[m HEAD@{36}: commit: Mails Page unresponsive on seeing the last mail fixed and listings UI inconsistencies
+[33mb1315f5[m HEAD@{37}: Branch: renamed refs/heads/main to refs/heads/main
+[33mb1315f5[m HEAD@{39}: commit: Fixed CORS error policy for URL access.
+[33md4528ba[m HEAD@{40}: Branch: renamed refs/heads/main to refs/heads/main
+[33md4528ba[m HEAD@{42}: commit: Fixed CORS error policy for URL access.
+[33mfa10791[m HEAD@{43}: Branch: renamed refs/heads/main to refs/heads/main
+[33mfa10791[m HEAD@{45}: Branch: renamed refs/heads/main to refs/heads/main
+[33mfa10791[m HEAD@{47}: commit: Fixed useSearchParams putted in parent component with a Suspense boundary
+[33mba6a56a[m HEAD@{48}: Branch: renamed refs/heads/main to refs/heads/main
+[33mba6a56a[m HEAD@{50}: commit: Fixed useSearchParams putted in parent component with a Suspense boundary
+[33m718bd7b[m HEAD@{51}: Branch: renamed refs/heads/main to refs/heads/main
+[33m718bd7b[m HEAD@{53}: commit: Created a Suspense Wrapper for the home page
+[33ma89964a[m HEAD@{54}: Branch: renamed refs/heads/main to refs/heads/main
+[33ma89964a[m HEAD@{56}: commit: Fixed unnecessary variables in dashboard/:id folder
+[33mdfa7cb7[m HEAD@{57}: Branch: renamed refs/heads/main to refs/heads/main
+[33mdfa7cb7[m HEAD@{59}: commit: Backend URL set up
+[33m8e60825[m HEAD@{60}: Branch: renamed refs/heads/main to refs/heads/main
+[33m8e60825[m HEAD@{62}: commit: Fixed UI and backend logical errors in listings
+[33mdfc7719[m HEAD@{63}: Branch: renamed refs/heads/main to refs/heads/main
+[33mdfc7719[m HEAD@{65}: commit: Profiles Tab
+[33mbeb7d28[m HEAD@{66}: Branch: renamed refs/heads/main to refs/heads/main
+[33mbeb7d28[m HEAD@{68}: commit: Created an onBoundsChange function for map interactivity and Fixed auth bugs, UI bugs and Notification functions
+[33m116c33f[m HEAD@{69}: clone: from https://github.com/CodeWithBry/Landspot.git
